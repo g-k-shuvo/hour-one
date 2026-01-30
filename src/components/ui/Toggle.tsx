@@ -9,9 +9,9 @@ export function Toggle({ enabled, onChange, title, description }: ToggleProps) {
   return (
     <div className="flex items-center justify-between py-3">
       <div className="flex-1 pr-4">
-        <p className="text-sm font-medium text-gray-900">{title}</p>
+        <p className="text-sm font-medium text-theme-primary">{title}</p>
         {description && (
-          <p className="text-xs text-gray-500">{description}</p>
+          <p className="text-xs text-theme-muted">{description}</p>
         )}
       </div>
       <button
@@ -20,8 +20,8 @@ export function Toggle({ enabled, onChange, title, description }: ToggleProps) {
         onClick={onChange}
         className={`
           relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full
-          transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-          ${enabled ? 'bg-blue-500' : 'bg-gray-300'}
+          transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 ring-accent focus:ring-offset-2
+          ${enabled ? 'bg-accent' : 'bg-theme-tertiary'}
         `}
       >
         <span

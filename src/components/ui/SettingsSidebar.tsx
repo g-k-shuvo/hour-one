@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Settings, X, User, HelpCircle, Info, Heart, Eye } from 'lucide-react';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { Settings, X, User, HelpCircle, Info, Heart, Eye, Sun, Moon, Monitor, Check } from 'lucide-react';
+import { useSettingsStore, ACCENT_COLORS, type ThemeMode, type AccentColor } from '@/stores/settingsStore';
 import { useMantraStore } from '@/stores/mantraStore';
 import { getMantraById, getAllMantras } from '@/services/mantrasService';
 import { Toggle } from './Toggle';
@@ -8,6 +8,7 @@ import { IconButton } from './IconButton';
 
 type SettingsSection =
   | 'general'
+  | 'theme'
   | 'clock'
   | 'photos'
   | 'quotes'
@@ -28,10 +29,10 @@ function NavItem({ label, active, onClick }: NavItemProps) {
     <button
       onClick={onClick}
       className={`
-        w-full text-left px-4 py-2 text-sm rounded-lg transition-colors
+        nav-item w-full text-left px-4 py-2 text-sm rounded-lg transition-colors
         ${active
-          ? 'bg-gray-100 text-gray-900 font-medium'
-          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+          ? 'active bg-theme-tertiary text-theme-primary font-medium'
+          : 'text-theme-secondary hover:bg-theme-tertiary hover:text-theme-primary'
         }
       `}
     >
@@ -53,6 +54,10 @@ export function SettingsSidebar() {
     setTemperatureUnit,
     searchProvider,
     setSearchProvider,
+    themeMode,
+    setThemeMode,
+    accentColor,
+    setAccentColor,
     widgets,
     toggleWidget,
   } = useSettingsStore();
@@ -86,13 +91,13 @@ export function SettingsSidebar() {
       case 'general':
         return (
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">General</h3>
-            <p className="text-sm text-gray-500 mb-6">Customize your dashboard</p>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">General</h3>
+            <p className="text-sm text-theme-secondary mb-6">Customize your dashboard</p>
 
             <div className="mb-6">
               <label
                 htmlFor="userName"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-theme-primary mb-2"
               >
                 Your Name
               </label>
@@ -102,13 +107,13 @@ export function SettingsSidebar() {
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
                 placeholder="Enter your name"
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder-gray-400 outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-theme bg-theme-primary px-4 py-2 text-theme-primary placeholder-theme-muted outline-none transition-colors focus:border-accent focus:ring-1 ring-accent"
               />
             </div>
 
-            <div className="border-t border-gray-200 pt-4">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Apps</p>
-              <div className="divide-y divide-gray-100">
+            <div className="border-t border-theme pt-4">
+              <p className="text-xs font-semibold text-theme-muted uppercase tracking-wider mb-3">Apps</p>
+              <div className="divide-y divide-theme-light">
                 <Toggle
                   enabled={widgets.clock}
                   onChange={() => toggleWidget('clock')}
@@ -150,15 +155,105 @@ export function SettingsSidebar() {
           </div>
         );
 
+      case 'theme':
+        return (
+          <div>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Theme</h3>
+            <p className="text-sm text-theme-secondary mb-6">Customize the look and feel</p>
+
+            {/* Theme Mode */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-theme-primary mb-3">
+                Appearance
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => setThemeMode('light')}
+                  className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                    themeMode === 'light'
+                      ? 'border-accent bg-accent/10'
+                      : 'border-theme hover:border-theme-light'
+                  }`}
+                >
+                  <Sun size={20} className={themeMode === 'light' ? 'text-accent' : 'text-theme-secondary'} />
+                  <span className={`text-xs font-medium ${themeMode === 'light' ? 'text-accent' : 'text-theme-secondary'}`}>
+                    Light
+                  </span>
+                </button>
+                <button
+                  onClick={() => setThemeMode('dark')}
+                  className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                    themeMode === 'dark'
+                      ? 'border-accent bg-accent/10'
+                      : 'border-theme hover:border-theme-light'
+                  }`}
+                >
+                  <Moon size={20} className={themeMode === 'dark' ? 'text-accent' : 'text-theme-secondary'} />
+                  <span className={`text-xs font-medium ${themeMode === 'dark' ? 'text-accent' : 'text-theme-secondary'}`}>
+                    Dark
+                  </span>
+                </button>
+                <button
+                  onClick={() => setThemeMode('system')}
+                  className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                    themeMode === 'system'
+                      ? 'border-accent bg-accent/10'
+                      : 'border-theme hover:border-theme-light'
+                  }`}
+                >
+                  <Monitor size={20} className={themeMode === 'system' ? 'text-accent' : 'text-theme-secondary'} />
+                  <span className={`text-xs font-medium ${themeMode === 'system' ? 'text-accent' : 'text-theme-secondary'}`}>
+                    System
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Accent Color */}
+            <div>
+              <label className="block text-sm font-medium text-theme-primary mb-3">
+                Accent Color
+              </label>
+              <div className="grid grid-cols-4 gap-3">
+                {(Object.entries(ACCENT_COLORS) as [AccentColor, { name: string; value: string }][]).map(
+                  ([key, { name, value }]) => (
+                    <button
+                      key={key}
+                      onClick={() => setAccentColor(key)}
+                      className={`group relative flex flex-col items-center gap-2 p-2 rounded-lg transition-all ${
+                        accentColor === key ? 'ring-2 ring-offset-2' : ''
+                      }`}
+                      style={{
+                        ringColor: accentColor === key ? value : undefined,
+                      }}
+                      title={name}
+                    >
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
+                        style={{ backgroundColor: value }}
+                      >
+                        {accentColor === key && (
+                          <Check size={14} className="text-white" />
+                        )}
+                      </div>
+                      <span className="text-xs text-theme-secondary">{name}</span>
+                    </button>
+                  )
+                )}
+              </div>
+            </div>
+          </div>
+        );
+
       case 'clock':
         return (
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Clock</h3>
-            <p className="text-sm text-gray-500 mb-6">Time display settings</p>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Clock</h3>
+            <p className="text-sm text-theme-secondary mb-6">Time display settings</p>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-theme-primary mb-2">
                   Time Format
                 </label>
                 <div className="flex gap-2">
@@ -166,8 +261,8 @@ export function SettingsSidebar() {
                     onClick={() => setTimeFormat('12h')}
                     className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                       timeFormat === '12h'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-accent text-white'
+                        : 'bg-theme-secondary text-theme-secondary hover:bg-theme-tertiary'
                     }`}
                   >
                     12 Hour
@@ -176,8 +271,8 @@ export function SettingsSidebar() {
                     onClick={() => setTimeFormat('24h')}
                     className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                       timeFormat === '24h'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-accent text-white'
+                        : 'bg-theme-secondary text-theme-secondary hover:bg-theme-tertiary'
                     }`}
                   >
                     24 Hour
@@ -191,10 +286,10 @@ export function SettingsSidebar() {
       case 'quotes':
         return (
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Quotes</h3>
-            <p className="text-sm text-gray-500 mb-6">Daily inspirational quotes</p>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Quotes</h3>
+            <p className="text-sm text-theme-secondary mb-6">Daily inspirational quotes</p>
 
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-theme-light">
               <Toggle
                 enabled={widgets.quote}
                 onChange={() => toggleWidget('quote')}
@@ -218,10 +313,10 @@ export function SettingsSidebar() {
       case 'weather':
         return (
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Weather</h3>
-            <p className="text-sm text-gray-500 mb-6">Weather display settings</p>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Weather</h3>
+            <p className="text-sm text-theme-secondary mb-6">Weather display settings</p>
 
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-theme-light">
               <Toggle
                 enabled={widgets.weather}
                 onChange={() => toggleWidget('weather')}
@@ -231,7 +326,7 @@ export function SettingsSidebar() {
             </div>
 
             <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-theme-primary mb-2">
                 Temperature Unit
               </label>
               <div className="flex gap-2">
@@ -239,8 +334,8 @@ export function SettingsSidebar() {
                   onClick={() => setTemperatureUnit('celsius')}
                   className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                     temperatureUnit === 'celsius'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-accent text-white'
+                      : 'bg-theme-secondary text-theme-secondary hover:bg-theme-tertiary'
                   }`}
                 >
                   Celsius (°C)
@@ -249,8 +344,8 @@ export function SettingsSidebar() {
                   onClick={() => setTemperatureUnit('fahrenheit')}
                   className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                     temperatureUnit === 'fahrenheit'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-accent text-white'
+                      : 'bg-theme-secondary text-theme-secondary hover:bg-theme-tertiary'
                   }`}
                 >
                   Fahrenheit (°F)
@@ -263,10 +358,10 @@ export function SettingsSidebar() {
       case 'search':
         return (
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Search</h3>
-            <p className="text-sm text-gray-500 mb-6">Search bar settings</p>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Search</h3>
+            <p className="text-sm text-theme-secondary mb-6">Search bar settings</p>
 
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-theme-light">
               <Toggle
                 enabled={widgets.search}
                 onChange={() => toggleWidget('search')}
@@ -276,7 +371,7 @@ export function SettingsSidebar() {
             </div>
 
             <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-theme-primary mb-2">
                 Search Engine
               </label>
               <select
@@ -286,7 +381,7 @@ export function SettingsSidebar() {
                     e.target.value as 'google' | 'bing' | 'duckduckgo' | 'ecosia'
                   )
                 }
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-theme bg-theme-primary px-4 py-2 text-theme-primary outline-none transition-colors focus:border-accent focus:ring-1 ring-accent"
               >
                 <option value="google">Google</option>
                 <option value="bing">Bing</option>
@@ -300,10 +395,10 @@ export function SettingsSidebar() {
       case 'links':
         return (
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Quick Links</h3>
-            <p className="text-sm text-gray-500 mb-6">Manage your quick links</p>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Quick Links</h3>
+            <p className="text-sm text-theme-secondary mb-6">Manage your quick links</p>
 
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-theme-light">
               <Toggle
                 enabled={widgets.quickLinks}
                 onChange={() => toggleWidget('quickLinks')}
@@ -317,10 +412,10 @@ export function SettingsSidebar() {
       case 'tasks':
         return (
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Tasks</h3>
-            <p className="text-sm text-gray-500 mb-6">Todo list settings</p>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Tasks</h3>
+            <p className="text-sm text-theme-secondary mb-6">Todo list settings</p>
 
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-theme-light">
               <Toggle
                 enabled={widgets.todos}
                 onChange={() => toggleWidget('todos')}
@@ -334,10 +429,10 @@ export function SettingsSidebar() {
       case 'photos':
         return (
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Photos</h3>
-            <p className="text-sm text-gray-500 mb-6">Background photo settings</p>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Photos</h3>
+            <p className="text-sm text-theme-secondary mb-6">Background photo settings</p>
 
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-theme-secondary">
               Background photos change automatically each day.
             </p>
           </div>
@@ -371,18 +466,23 @@ export function SettingsSidebar() {
 
           {/* Panel */}
           <div
-            className="relative z-10 w-full max-w-3xl mx-4 h-[600px] max-h-[80vh] rounded-2xl bg-white shadow-2xl overflow-hidden"
+            className="settings-modal relative z-10 w-full max-w-3xl mx-4 h-[600px] max-h-[80vh] rounded-2xl bg-theme-primary shadow-2xl overflow-hidden"
             style={{ animation: 'scaleIn 200ms ease-out' }}
           >
             <div className="flex h-full">
               {/* Left Sidebar Navigation */}
-              <div className="w-48 bg-gray-50 border-r border-gray-200 flex flex-col">
+              <div className="settings-sidebar w-48 bg-theme-secondary border-r border-theme flex flex-col">
                 <div className="p-4 flex-1">
                   <nav className="space-y-1">
                     <NavItem
                       label="General"
                       active={activeSection === 'general'}
                       onClick={() => setActiveSection('general')}
+                    />
+                    <NavItem
+                      label="Theme"
+                      active={activeSection === 'theme'}
+                      onClick={() => setActiveSection('theme')}
                     />
                     <NavItem
                       label="Clock"
@@ -426,7 +526,7 @@ export function SettingsSidebar() {
                     />
                   </nav>
 
-                  <div className="mt-6 pt-6 border-t border-gray-200 space-y-1">
+                  <div className="mt-6 pt-6 border-t border-theme space-y-1">
                     <NavItem
                       label="Help"
                       active={false}
@@ -441,8 +541,8 @@ export function SettingsSidebar() {
                 </div>
 
                 {/* User section at bottom */}
-                <div className="p-4 border-t border-gray-200">
-                  <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                <div className="p-4 border-t border-theme">
+                  <button className="flex items-center gap-2 text-sm text-theme-secondary hover:text-theme-primary transition-colors">
                     <User size={16} />
                     <span>{userName || 'Guest'}</span>
                   </button>
@@ -452,10 +552,10 @@ export function SettingsSidebar() {
               {/* Right Content Area */}
               <div className="flex-1 flex flex-col">
                 {/* Header with close button */}
-                <div className="flex justify-end p-4 border-b border-gray-200">
+                <div className="flex justify-end p-4 border-b border-theme">
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                    className="rounded-full p-1 text-theme-muted transition-colors hover:bg-theme-secondary hover:text-theme-secondary"
                     aria-label="Close settings"
                   >
                     <X size={20} />
@@ -468,8 +568,8 @@ export function SettingsSidebar() {
                 </div>
 
                 {/* Footer */}
-                <div className="border-t border-gray-200 p-4">
-                  <p className="text-center text-xs text-gray-400">
+                <div className="border-t border-theme p-4">
+                  <p className="text-center text-xs text-theme-muted">
                     Hour One v0.1.0
                   </p>
                 </div>
@@ -531,10 +631,10 @@ function MantraSettings({
 
   return (
     <div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-1">Mantra</h3>
-      <p className="text-sm text-gray-500 mb-6">Daily inspirational mantras</p>
+      <h3 className="text-lg font-semibold text-theme-primary mb-1">Mantra</h3>
+      <p className="text-sm text-theme-secondary mb-6">Daily inspirational mantras</p>
 
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-theme-light">
         <Toggle
           enabled={showMantra}
           onChange={() => setShowMantra(!showMantra)}
@@ -546,7 +646,7 @@ function MantraSettings({
       {/* Favorites section */}
       {favoriteMantras.length > 0 && (
         <div className="mt-6">
-          <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+          <h4 className="text-sm font-medium text-theme-primary mb-3 flex items-center gap-2">
             <Heart size={14} className="text-red-500" />
             Favorites
           </h4>
@@ -554,12 +654,12 @@ function MantraSettings({
             {favoriteMantras.map(mantra => (
               <div
                 key={mantra.id}
-                className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                className="flex items-center justify-between p-2 bg-theme-secondary rounded-lg"
               >
-                <p className="text-sm text-gray-700 flex-1 pr-2">{mantra.text}</p>
+                <p className="text-sm text-theme-primary flex-1 pr-2">{mantra.text}</p>
                 <button
                   onClick={() => toggleFavorite(mantra.id)}
-                  className="text-xs text-gray-500 hover:text-red-500 transition-colors"
+                  className="text-xs text-theme-muted hover:text-red-500 transition-colors"
                 >
                   Remove
                 </button>
@@ -572,20 +672,20 @@ function MantraSettings({
       {/* Hidden section */}
       {hiddenMantras.length > 0 && (
         <div className="mt-6">
-          <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-            <Eye size={14} className="text-gray-500" />
+          <h4 className="text-sm font-medium text-theme-primary mb-3 flex items-center gap-2">
+            <Eye size={14} className="text-theme-muted" />
             Hidden Mantras
           </h4>
           <div className="space-y-2">
             {hiddenMantras.map(mantra => (
               <div
                 key={mantra.id}
-                className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                className="flex items-center justify-between p-2 bg-theme-secondary rounded-lg"
               >
-                <p className="text-sm text-gray-500 flex-1 pr-2">{mantra.text}</p>
+                <p className="text-sm text-theme-muted flex-1 pr-2">{mantra.text}</p>
                 <button
                   onClick={() => unhideMantra(mantra.id)}
-                  className="text-xs text-gray-500 hover:text-blue-500 transition-colors"
+                  className="text-xs text-theme-muted hover:text-accent transition-colors"
                 >
                   Unhide
                 </button>

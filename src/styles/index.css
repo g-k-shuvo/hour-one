@@ -2,6 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme CSS Variables */
+:root {
+  /* Accent color (overridden by JS) */
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+
+  /* Light theme colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f3f4f6;
+  --bg-tertiary: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --border: #e5e7eb;
+  --border-light: #f3f4f6;
+
+  /* Glass effects */
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-dark-bg: rgba(0, 0, 0, 0.3);
+  --glass-dark-border: rgba(255, 255, 255, 0.1);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark theme */
+.dark {
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #262626;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #6b7280;
+  --border: #374151;
+  --border-light: #1f2937;
+
+  --glass-bg: rgba(0, 0, 0, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-dark-bg: rgba(0, 0, 0, 0.5);
+  --glass-dark-border: rgba(255, 255, 255, 0.1);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+}
+
 /* Base styles */
 html, body, #root {
   height: 100%;
@@ -13,6 +62,8 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 /* Custom utilities */
@@ -26,16 +77,115 @@ body {
   }
 
   .glass {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--glass-bg);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--glass-border);
   }
 
   .glass-dark {
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--glass-dark-bg);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-dark-border);
   }
+
+  /* Accent color utilities */
+  .bg-accent {
+    background-color: var(--accent);
+  }
+
+  .bg-accent-hover:hover {
+    background-color: var(--accent-hover);
+  }
+
+  .text-accent {
+    color: var(--accent);
+  }
+
+  .border-accent {
+    border-color: var(--accent);
+  }
+
+  .ring-accent {
+    --tw-ring-color: var(--accent);
+  }
+
+  /* Theme-aware backgrounds */
+  .bg-theme-primary {
+    background-color: var(--bg-primary);
+  }
+
+  .bg-theme-secondary {
+    background-color: var(--bg-secondary);
+  }
+
+  .bg-theme-tertiary {
+    background-color: var(--bg-tertiary);
+  }
+
+  /* Theme-aware text */
+  .text-theme-primary {
+    color: var(--text-primary);
+  }
+
+  .text-theme-secondary {
+    color: var(--text-secondary);
+  }
+
+  .text-theme-muted {
+    color: var(--text-muted);
+  }
+
+  /* Theme-aware borders */
+  .border-theme {
+    border-color: var(--border);
+  }
+
+  .border-theme-light {
+    border-color: var(--border-light);
+  }
+}
+
+/* Settings modal theme styles */
+.settings-modal {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.settings-modal .nav-item {
+  color: var(--text-secondary);
+}
+
+.settings-modal .nav-item:hover {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.settings-modal .nav-item.active {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.settings-sidebar {
+  background-color: var(--bg-secondary);
+  border-color: var(--border);
+}
+
+/* Form elements in settings */
+.settings-modal input[type="text"],
+.settings-modal select {
+  background-color: var(--bg-primary);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+.settings-modal input[type="text"]:focus,
+.settings-modal select:focus {
+  border-color: var(--accent);
+  ring-color: var(--accent);
+}
+
+.settings-modal input[type="text"]::placeholder {
+  color: var(--text-muted);
 }
