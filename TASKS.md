@@ -1,0 +1,213 @@
+# Hour One - Feature Task Tracker
+
+> Last Updated: 2026-01-29
+
+## Overview
+
+This document tracks the implementation progress of all features for the Hour One Chrome extension.
+
+**Legend:**
+- ✅ Complete
+- 🚧 In Progress
+- ⏳ Pending
+- ❌ Blocked
+
+---
+
+## Phase 1: Core Foundation
+
+| # | Feature | Status | Notes |
+|---|---------|--------|-------|
+| 1.1 | Project Setup (Vite + React + TS) | ✅ | Complete |
+| 1.2 | Manifest V3 Configuration | ✅ | Complete |
+| 1.3 | New Tab Override | ✅ | Complete |
+| 1.4 | Basic Dashboard Layout | ✅ | Complete |
+| 1.5 | Settings Infrastructure | ✅ | Zustand + Chrome Storage |
+| 1.6 | Extension Icons | ✅ | SVG placeholders |
+
+---
+
+## Phase 2: Free Features
+
+| # | Feature | Status | Files | Notes |
+|---|---------|--------|-------|-------|
+| 2.1 | Clock Display | ✅ | `widgets/Clock.tsx` | 12/24h format, date display |
+| 2.2 | Background Images | ✅ | `widgets/Background.tsx`, `services/backgroundService.ts` | 20 curated images, daily rotation |
+| 2.3 | Daily Quotes | ✅ | `widgets/Quote.tsx`, `services/quotesService.ts` | 50 quotes, daily rotation |
+| 2.4 | Greeting | ✅ | `widgets/Greeting.tsx` | Time-based greeting |
+| 2.5 | Focus Mode | ✅ | `widgets/Focus.tsx`, `stores/focusStore.ts` | Daily focus with completion |
+| 2.6 | Basic To-Do List | ✅ | `widgets/TodoList.tsx`, `stores/todosStore.ts` | Add/complete/delete tasks |
+| 2.7 | Quick Links | ✅ | `widgets/QuickLinks.tsx`, `stores/quickLinksStore.ts` | Custom shortcuts, favicons |
+| 2.8 | Weather Widget | ✅ | `widgets/Weather.tsx`, `services/weatherService.ts` | Open-Meteo API, geolocation |
+| 2.9 | Search Bar | ✅ | `widgets/SearchBar.tsx` | Google, Bing, DuckDuckGo, Ecosia |
+| 2.10 | Bookmarks Bar | ✅ | `widgets/Bookmarks.tsx`, `services/bookmarksService.ts` | Chrome Bookmarks API |
+| 2.11 | Settings Panel | ✅ | `ui/SettingsPanel.tsx` | User preferences |
+
+---
+
+## Phase 3: Pro Infrastructure
+
+| # | Feature | Status | Files | Notes |
+|---|---------|--------|-------|-------|
+| 3.1 | User Authentication | ⏳ | - | Email/password or OAuth |
+| 3.2 | Backend API | ⏳ | - | Node.js/Express |
+| 3.3 | Subscription Management | ⏳ | - | Stripe integration |
+| 3.4 | Cloud Sync Service | ⏳ | - | Cross-device sync |
+| 3.5 | Pro Feature Gating | ⏳ | - | Paywall logic |
+
+---
+
+## Phase 4: Pro Features
+
+### Vision & Customization
+
+| # | Feature | Status | Files | Notes |
+|---|---------|--------|-------|-------|
+| 4.1 | Vision Board | ⏳ | - | Custom image uploads |
+| 4.2 | Multiple Workspaces | ⏳ | - | Context switching |
+| 4.3 | Custom Themes | ⏳ | - | Dark mode, color customization |
+| 4.4 | Widget Drag & Drop | ⏳ | - | Repositionable widgets |
+
+### Productivity Tools
+
+| # | Feature | Status | Files | Notes |
+|---|---------|--------|-------|-------|
+| 4.5 | Pomodoro Timer | ⏳ | - | 25/5 work/break cycles |
+| 4.6 | Advanced To-Do Lists | ⏳ | - | Multiple lists, priorities, due dates |
+| 4.7 | Autofocus Mode | ⏳ | - | Sequential task focus |
+| 4.8 | Habit Tracker | ⏳ | - | Daily habits, streaks |
+| 4.9 | Metrics Dashboard | ⏳ | - | Productivity analytics |
+| 4.10 | Balance Mode | ⏳ | - | Work-life balance tracking |
+
+### Tab & Session Management
+
+| # | Feature | Status | Files | Notes |
+|---|---------|--------|-------|-------|
+| 4.11 | Tab Stash | ⏳ | - | Save/restore tab sessions |
+
+### Time & Planning
+
+| # | Feature | Status | Files | Notes |
+|---|---------|--------|-------|-------|
+| 4.12 | World Clocks | ⏳ | - | Multiple timezone display |
+| 4.13 | Countdown Timers | ⏳ | - | Event countdowns |
+| 4.14 | Premium Weather | ⏳ | - | Extended forecasts, alerts |
+
+### AI Features
+
+| # | Feature | Status | Files | Notes |
+|---|---------|--------|-------|-------|
+| 4.15 | Notes AI | ⏳ | - | AI-powered note taking |
+| 4.16 | Ask AI | ⏳ | - | AI productivity assistant |
+
+### Integrations
+
+| # | Feature | Status | Files | Notes |
+|---|---------|--------|-------|-------|
+| 4.17 | Todoist Integration | ⏳ | - | OAuth + API |
+| 4.18 | Asana Integration | ⏳ | - | OAuth + API |
+| 4.19 | ClickUp Integration | ⏳ | - | OAuth + API |
+| 4.20 | GitHub Issues | ⏳ | - | OAuth + API |
+
+### Media
+
+| # | Feature | Status | Files | Notes |
+|---|---------|--------|-------|-------|
+| 4.21 | Soundscapes | ⏳ | - | Ambient sounds (rain, forest, etc.) |
+
+---
+
+## Phase 5: Polish & Launch
+
+| # | Feature | Status | Files | Notes |
+|---|---------|--------|-------|-------|
+| 5.1 | Onboarding Flow | ⏳ | - | First-time user setup |
+| 5.2 | Performance Optimization | ⏳ | - | Lazy loading, code splitting |
+| 5.3 | Error Handling | ⏳ | - | Graceful degradation |
+| 5.4 | Keyboard Shortcuts | ⏳ | - | Quick actions |
+| 5.5 | Widget Visibility Toggles | ⏳ | - | Show/hide in settings |
+| 5.6 | Cross-Browser Support | ⏳ | - | Firefox, Edge |
+| 5.7 | Unit Tests | ⏳ | - | Component tests |
+| 5.8 | E2E Tests | ⏳ | - | Playwright tests |
+| 5.9 | Chrome Web Store Listing | ⏳ | - | Store assets, description |
+| 5.10 | Documentation | ⏳ | - | User guide |
+
+---
+
+## Progress Summary
+
+| Phase | Total | Complete | In Progress | Pending |
+|-------|-------|----------|-------------|---------|
+| Phase 1: Foundation | 6 | 6 | 0 | 0 |
+| Phase 2: Free Features | 11 | 11 | 0 | 0 |
+| Phase 3: Pro Infrastructure | 5 | 0 | 0 | 5 |
+| Phase 4: Pro Features | 21 | 0 | 0 | 21 |
+| Phase 5: Polish & Launch | 10 | 0 | 0 | 10 |
+| **Total** | **53** | **17** | **0** | **36** |
+
+**Overall Progress: 32% Complete (17/53 features)**
+
+---
+
+## File Structure
+
+```
+src/
+├── components/
+│   ├── layout/
+│   │   └── Dashboard.tsx ✅
+│   ├── widgets/
+│   │   ├── Background.tsx ✅
+│   │   ├── Bookmarks.tsx ✅
+│   │   ├── Clock.tsx ✅
+│   │   ├── Focus.tsx ✅
+│   │   ├── Greeting.tsx ✅
+│   │   ├── QuickLinks.tsx ✅
+│   │   ├── Quote.tsx ✅
+│   │   ├── SearchBar.tsx ✅
+│   │   ├── TodoList.tsx ✅
+│   │   └── Weather.tsx ✅
+│   └── ui/
+│       └── SettingsPanel.tsx ✅
+├── hooks/
+├── services/
+│   ├── backgroundService.ts ✅
+│   ├── bookmarksService.ts ✅
+│   ├── quotesService.ts ✅
+│   └── weatherService.ts ✅
+├── stores/
+│   ├── backgroundStore.ts ✅
+│   ├── bookmarksStore.ts ✅
+│   ├── focusStore.ts ✅
+│   ├── quickLinksStore.ts ✅
+│   ├── quoteStore.ts ✅
+│   ├── settingsStore.ts ✅
+│   ├── todosStore.ts ✅
+│   └── weatherStore.ts ✅
+├── types/
+│   └── index.ts ✅
+├── utils/
+├── styles/
+│   └── index.css ✅
+├── newtab.html ✅
+└── newtab.tsx ✅
+```
+
+---
+
+## Next Up (Recommended Order)
+
+1. **5.5 Widget Visibility Toggles** - Add show/hide toggles in Settings
+2. **5.1 Onboarding Flow** - First-time user name/location setup
+3. **4.5 Pomodoro Timer** - Popular productivity feature
+4. **4.11 Tab Stash** - Unique browser feature
+5. **4.6 Advanced To-Do Lists** - Enhance existing feature
+
+---
+
+## Notes
+
+- All free features are complete and functional
+- Pro features require backend infrastructure (Phase 3)
+- AI features (4.15, 4.16) require API key management
+- Integrations (4.17-4.20) require OAuth implementation

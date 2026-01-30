@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Hour One",
+  "description": "Transform your new tab into a productivity dashboard with daily inspiration, task management, and focus tools",
+  "version": "0.1.0",
+  "icons": {
+    "16": "icons/icon-16.svg",
+    "48": "icons/icon-48.svg",
+    "128": "icons/icon-128.svg"
+  },
+  "chrome_url_overrides": {
+    "newtab": "src/newtab.html"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "optional_permissions": [
+    "geolocation",
+    "bookmarks"
+  ],
+  "host_permissions": [
+    "https://images.unsplash.com/*"
+  ]
+}
