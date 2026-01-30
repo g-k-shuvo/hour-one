@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { Check, Edit3, X, MoreHorizontal } from 'lucide-react';
 import { useFocusStore } from '@/stores/focusStore';
+import { useFocusSessionStore } from '@/stores/focusSessionStore';
 
 export function Focus() {
-  const { focus, isCompleted, setFocus, completeFocus, clearFocus } = useFocusStore();
+  const { focus, isCompleted, setFocus, toggleComplete, clearFocus } = useFocusStore();
+  const { phase } = useFocusSessionStore();
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(focus);
   const [showMenu, setShowMenu] = useState(false);
@@ -40,7 +42,7 @@ export function Focus() {
   };
 
   const handleComplete = () => {
-    completeFocus();
+    toggleComplete();
   };
 
   const handleEdit = () => {
@@ -55,6 +57,11 @@ export function Focus() {
     setIsEditing(false);
     setShowMenu(false);
   };
+
+  // Hide this component during focus mode
+  if (phase !== 'idle') {
+    return null;
+  }
 
   // No focus set - show input prompt
   if (!focus && !isEditing) {
@@ -97,7 +104,7 @@ export function Focus() {
     );
   }
 
-  // Focus set - show focus with checkbox and menu
+  // Focus set - show focus with checkbox, menu, and focus button
   return (
     <div className="relative w-full group">
       <div className="flex items-center justify-center gap-2">

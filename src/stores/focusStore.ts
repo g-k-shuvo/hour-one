@@ -9,6 +9,7 @@ interface FocusState {
   // Actions
   setFocus: (text: string) => void;
   completeFocus: () => void;
+  toggleComplete: () => void;
   clearFocus: () => void;
 }
 
@@ -67,6 +68,10 @@ export const useFocusStore = create<FocusState>()(
 
       completeFocus: () => {
         set({ isCompleted: true });
+      },
+
+      toggleComplete: () => {
+        set((state) => ({ isCompleted: !state.isCompleted }));
       },
 
       clearFocus: () => {

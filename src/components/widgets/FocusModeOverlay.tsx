@@ -1,0 +1,984 @@
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { X, Play, Pause, RotateCcw, MoreHorizontal, Check, Plus, Clock, Bell, Eye, Volume2, Timer, ArrowUpDown } from 'lucide-react';
+import {
+  useFocusSessionStore,
+  getRandomFocusQuote,
+  getCelebrationMessage,
+} from '@/stores/focusSessionStore';
+import { useFocusStore } from '@/stores/focusStore';
+
+// Format seconds to MM:SS or HH:MM:SS
+function formatTime(seconds: number, hideSeconds: boolean = false): string {
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  if (hideSeconds) {
+    if (hrs > 0) {
+      return `${hrs}:${mins.toString().padStart(2, '0')}`;
+    }
+    return `${mins}`;
+  }
+
+  if (hrs > 0) {
+    return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Format session duration for display
+function formatDuration(seconds: number): string {
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+
+  if (hrs > 0) {
+    return `${hrs}h ${mins}m`;
+  }
+  return `${mins}m ${seconds % 60}s`;
+}
+
+// Confetti particle component
+function Confetti() {
+  const particles = useMemo(() => {
+    return Array.from({ length: 50 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      delay: Math.random() * 3,
+      duration: 3 + Math.random() * 2,
+      color: ['#ff6b6b', '#4ecdc4', '#ffe66d', '#95e1d3', '#f8a5c2', '#778beb'][
+        Math.floor(Math.random() * 6)
+      ],
+      size: 8 + Math.random() * 8,
+    }));
+  }, []);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-50">
+      {particles.map((p) => (
+        <div
+          key={p.id}
+          className="absolute animate-confetti"
+          style={{
+            left: `${p.left}%`,
+            top: '-20px',
+            width: p.size,
+            height: p.size,
+            backgroundColor: p.color,
+            borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+            animationDelay: `${p.delay}s`,
+            animationDuration: `${p.duration}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Transition screen with motivational quote
+function TransitionScreen() {
+  const [quote] = useState(() => getRandomFocusQuote());
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center animate-fadeIn">
+      <div className="text-center px-8 max-w-lg">
+        {/* Animated icon */}
+        <div className="text-6xl mb-6 animate-pulse">{quote.icon}</div>
+
+        {/* Quote text */}
+        <p className="text-2xl md:text-3xl font-light text-white mb-8 animate-slideUp">
+          {quote.text}
+        </p>
+
+        {/* Loading dots */}
+        <div className="flex justify-center gap-2">
+          <div
+            className="w-2 h-2 rounded-full bg-white/60 animate-loadingDot"
+            style={{ animationDelay: '0s' }}
+          />
+          <div
+            className="w-2 h-2 rounded-full bg-white/60 animate-loadingDot"
+            style={{ animationDelay: '0.2s' }}
+          />
+          <div
+            className="w-2 h-2 rounded-full bg-white/60 animate-loadingDot"
+            style={{ animationDelay: '0.4s' }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Celebration/stats screen
+function CelebrationScreen() {
+  const { totalSessionSeconds, pomodorosCompleted } = useFocusSessionStore();
+  const celebration = getCelebrationMessage(totalSessionSeconds);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center animate-fadeIn">
+      {celebration.showConfetti && <Confetti />}
+
+      <div className="text-center px-8 max-w-lg">
+        {/* Celebration emoji */}
+        <div className="text-7xl mb-4 animate-bounce">{celebration.emoji}</div>
+
+        {/* Title */}
+        <h2 className="text-3xl md:text-4xl font-semibold text-white mb-3 animate-slideUp">
+          {celebration.title}
+        </h2>
+
+        {/* Subtitle */}
+        <p className="text-lg text-white/70 mb-8 animate-slideUp" style={{ animationDelay: '0.1s' }}>
+          {celebration.subtitle}
+        </p>
+
+        {/* Stats card */}
+        <div
+          className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 animate-scaleIn"
+          style={{ animationDelay: '0.2s' }}
+        >
+          <div className="flex justify-center gap-8">
+            {/* Session time */}
+            <div className="text-center">
+              <div className="text-3xl font-bold text-white mb-1">
+                {formatDuration(totalSessionSeconds)}
+              </div>
+              <div className="text-sm text-white/50">Total Time</div>
+            </div>
+
+            {/* Pomodoros completed */}
+            {pomodorosCompleted > 0 && (
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white mb-1">
+                  {pomodorosCompleted}
+                </div>
+                <div className="text-sm text-white/50">
+                  {pomodorosCompleted === 1 ? 'Pomodoro' : 'Pomodoros'}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Toggle switch component
+function ToggleSwitch({ checked, onChange, disabled = false }: { checked: boolean; onChange: (checked: boolean) => void; disabled?: boolean }) {
+  return (
+    <button
+      onClick={() => !disabled && onChange(!checked)}
+      disabled={disabled}
+      className={`relative w-10 h-5 rounded-full transition-colors ${
+        disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+      } ${checked ? 'bg-green-500' : 'bg-white/20'}`}
+    >
+      <div
+        className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+          checked ? 'translate-x-5' : 'translate-x-0.5'
+        }`}
+      />
+    </button>
+  );
+}
+
+// Arc progress component (70% of circle, gap centered at bottom)
+function ArcProgress({ progress, size = 320, strokeWidth = 4, children }: {
+  progress: number;
+  size?: number;
+  strokeWidth?: number;
+  children: React.ReactNode;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  // 70% of circle = 252 degrees, gap = 108 degrees (30%)
+  const arcPercent = 0.7;
+  const arcLength = circumference * arcPercent;
+  const gapLength = circumference * (1 - arcPercent);
+
+  // Progress arc length based on remaining time
+  // progress = 1 means full arc, progress = 0 means no arc
+  const progressArcLength = arcLength * progress;
+
+  // Rotation to center gap at bottom:
+  // SVG starts at 3 o'clock (0deg), we want gap centered at 6 o'clock (90deg from start)
+  // Arc is 252deg, gap is 108deg (54deg on each side of bottom)
+  // Start drawing arc at: 90deg + 54deg = 144deg from 3 o'clock position
+  const rotation = 144;
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg
+        width={size}
+        height={size}
+        style={{ transform: `rotate(${rotation}deg)` }}
+      >
+        {/* Background track arc (70%) - always visible */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="rgba(255, 255, 255, 0.25)"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={`${arcLength} ${gapLength}`}
+        />
+        {/* Progress arc - shrinks as time passes */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="rgba(255, 255, 255, 0.9)"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={`${progressArcLength} ${circumference}`}
+          className="transition-all duration-1000 ease-linear"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// Timer settings dropdown for Pomodoro
+function PomodoroSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => void; onSwitchMode: () => void }) {
+  const {
+    settings,
+    updateSettings,
+    resetTimer,
+    addMinutes,
+    completeCurrentTimer,
+    isTimerRunning,
+  } = useFocusSessionStore();
+
+  const [focusTime, setFocusTime] = useState(settings.focusDuration.toString());
+  const [breakTime, setBreakTime] = useState(settings.breakDuration.toString());
+
+  const handleFocusTimeChange = (value: string) => {
+    setFocusTime(value);
+    const num = parseInt(value);
+    if (!isNaN(num) && num > 0 && num <= 120) {
+      updateSettings({ focusDuration: num });
+    }
+  };
+
+  const handleBreakTimeChange = (value: string) => {
+    setBreakTime(value);
+    const num = parseInt(value);
+    if (!isNaN(num) && num > 0 && num <= 60) {
+      updateSettings({ breakDuration: num });
+    }
+  };
+
+  return (
+    <>
+      <div className="fixed inset-0 z-50" onClick={onClose} />
+      <div
+        className="absolute right-0 top-full mt-2 z-50 w-64 rounded-xl bg-gray-900/95 backdrop-blur-sm border border-white/10 shadow-2xl overflow-hidden"
+        style={{ animation: 'fadeIn 150ms ease-out' }}
+      >
+        {/* Header with mode toggle */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+          <div className="flex items-center gap-2 text-white/90">
+            <Timer size={16} />
+            <span className="font-medium">Pomodoro</span>
+          </div>
+          <button
+            onClick={() => { onSwitchMode(); }}
+            disabled={isTimerRunning}
+            className={`p-1.5 rounded-md transition-colors ${
+              isTimerRunning
+                ? 'text-white/20 cursor-not-allowed'
+                : 'text-white/50 hover:text-white/80 hover:bg-white/10'
+            }`}
+            title="Switch to Count Up"
+          >
+            <ArrowUpDown size={16} />
+          </button>
+        </div>
+
+        {/* Actions */}
+        <div className="p-2 border-b border-white/10">
+          <button
+            onClick={() => { completeCurrentTimer(); onClose(); }}
+            className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <Check size={16} />
+            <span>Complete timer</span>
+          </button>
+          <button
+            onClick={() => { resetTimer(); onClose(); }}
+            className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <RotateCcw size={16} />
+            <span>Restart timer</span>
+          </button>
+          <button
+            onClick={() => { addMinutes(10); onClose(); }}
+            className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <Plus size={16} />
+            <span>Add 10 minutes</span>
+          </button>
+        </div>
+
+        {/* Duration inputs */}
+        <div className="p-3 border-b border-white/10 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/70">Focus</span>
+            <div className="flex items-center gap-1">
+              <input
+                type="number"
+                value={focusTime}
+                onChange={(e) => handleFocusTimeChange(e.target.value)}
+                disabled={isTimerRunning}
+                className="w-12 bg-transparent border-none text-sm text-white/70 text-right disabled:opacity-50 outline-none"
+                min="1"
+                max="120"
+              />
+              <span className="text-sm text-white/40">min</span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/70">Break</span>
+            <div className="flex items-center gap-1">
+              <input
+                type="number"
+                value={breakTime}
+                onChange={(e) => handleBreakTimeChange(e.target.value)}
+                disabled={isTimerRunning}
+                className="w-12 bg-transparent border-none text-sm text-white/70 text-right disabled:opacity-50 outline-none"
+                min="1"
+                max="60"
+              />
+              <span className="text-sm text-white/40">min</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Toggle settings */}
+        <div className="p-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/70">Timer sound effects</span>
+            <ToggleSwitch
+              checked={settings.soundEnabled}
+              onChange={(checked) => updateSettings({ soundEnabled: checked })}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/70">Auto-start timers</span>
+            <ToggleSwitch
+              checked={settings.autoStartTimers}
+              onChange={(checked) => updateSettings({ autoStartTimers: checked })}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/70">Hide seconds</span>
+            <ToggleSwitch
+              checked={settings.hideSeconds}
+              onChange={(checked) => updateSettings({ hideSeconds: checked })}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/70">Browser notifications</span>
+            <ToggleSwitch
+              checked={settings.notificationsEnabled}
+              onChange={(checked) => updateSettings({ notificationsEnabled: checked })}
+            />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Timer settings dropdown for Count Up
+function CountUpSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => void; onSwitchMode: () => void }) {
+  const { settings, updateSettings, resetTimer, isTimerRunning } = useFocusSessionStore();
+
+  return (
+    <>
+      <div className="fixed inset-0 z-50" onClick={onClose} />
+      <div
+        className="absolute right-0 top-full mt-2 z-50 w-56 rounded-xl bg-gray-900/95 backdrop-blur-sm border border-white/10 shadow-2xl overflow-hidden"
+        style={{ animation: 'fadeIn 150ms ease-out' }}
+      >
+        {/* Header with mode toggle */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+          <div className="flex items-center gap-2 text-white/90">
+            <Clock size={16} />
+            <span className="font-medium">Count Up</span>
+          </div>
+          <button
+            onClick={() => { onSwitchMode(); }}
+            disabled={isTimerRunning}
+            className={`p-1.5 rounded-md transition-colors ${
+              isTimerRunning
+                ? 'text-white/20 cursor-not-allowed'
+                : 'text-white/50 hover:text-white/80 hover:bg-white/10'
+            }`}
+            title="Switch to Pomodoro"
+          >
+            <ArrowUpDown size={16} />
+          </button>
+        </div>
+
+        {/* Actions */}
+        <div className="p-2 border-b border-white/10">
+          <button
+            onClick={() => { resetTimer(); onClose(); }}
+            className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <RotateCcw size={16} />
+            <span>Restart timer</span>
+          </button>
+        </div>
+
+        {/* Toggle settings */}
+        <div className="p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/70">Hide seconds</span>
+            <ToggleSwitch
+              checked={settings.hideSeconds}
+              onChange={(checked) => updateSettings({ hideSeconds: checked })}
+            />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Focus input component inside the timer (matches normal mode functionality)
+function FocusInput() {
+  const { focus, isCompleted, setFocus, completeFocus, clearFocus, toggleComplete } = useFocusStore();
+  const [isEditing, setIsEditing] = useState(false);
+  const [inputValue, setInputValue] = useState(focus);
+  const [showMenu, setShowMenu] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setInputValue(focus);
+  }, [focus]);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleSubmit = () => {
+    const trimmed = inputValue.trim();
+    if (trimmed) {
+      setFocus(trimmed);
+      setIsEditing(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSubmit();
+    } else if (e.key === 'Escape') {
+      setInputValue(focus);
+      setIsEditing(false);
+    }
+  };
+
+  const handleToggleComplete = () => {
+    if (toggleComplete) {
+      toggleComplete();
+    } else {
+      completeFocus();
+    }
+  };
+
+  const handleEdit = () => {
+    setInputValue(focus);
+    setIsEditing(true);
+    setShowMenu(false);
+  };
+
+  const handleClear = () => {
+    clearFocus();
+    setInputValue('');
+    setIsEditing(false);
+    setShowMenu(false);
+  };
+
+  // No focus set - show prompt
+  if (!focus && !isEditing) {
+    return (
+      <button
+        onClick={() => setIsEditing(true)}
+        className="text-lg text-white/50 hover:text-white/70 transition-colors"
+      >
+        I will focus on...
+      </button>
+    );
+  }
+
+  // Editing mode
+  if (isEditing) {
+    return (
+      <input
+        ref={inputRef}
+        type="text"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleSubmit}
+        placeholder="I will focus on..."
+        className="w-full max-w-[240px] bg-transparent text-lg text-white text-center outline-none placeholder-white/40"
+        maxLength={100}
+      />
+    );
+  }
+
+  // Focus is set - show with checkbox and menu
+  return (
+    <div className="flex items-center gap-2 group relative">
+      {/* Checkbox - toggleable */}
+      <button
+        onClick={handleToggleComplete}
+        className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+          isCompleted
+            ? 'border-green-400 bg-green-400/20 text-green-400'
+            : 'border-white/40 hover:border-white/60 text-transparent hover:text-white/40'
+        }`}
+      >
+        <Check size={12} strokeWidth={3} />
+      </button>
+
+      {/* Focus text */}
+      <span
+        className={`text-lg transition-all max-w-[180px] truncate ${
+          isCompleted ? 'text-white/40 line-through' : 'text-white/90'
+        }`}
+        title={focus}
+      >
+        {focus}
+      </span>
+
+      {/* Three dots menu */}
+      <div className="relative">
+        <button
+          onClick={() => setShowMenu(!showMenu)}
+          className={`p-0.5 rounded-full transition-all hover:bg-white/10 ${
+            showMenu ? 'opacity-100 text-white/60' : 'opacity-0 group-hover:opacity-100 text-white/40'
+          }`}
+        >
+          <MoreHorizontal size={16} />
+        </button>
+
+        {/* Dropdown menu */}
+        {showMenu && (
+          <>
+            <div
+              className="fixed inset-0 z-50"
+              onClick={() => setShowMenu(false)}
+            />
+            <div
+              className="absolute left-0 top-full mt-1 z-50 w-28 rounded-lg bg-gray-900/95 backdrop-blur-sm border border-white/10 py-1 shadow-xl"
+              style={{ animation: 'fadeIn 150ms ease-out' }}
+            >
+              <button
+                onClick={handleEdit}
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-white/80 hover:bg-white/10 transition-colors"
+              >
+                <span>Edit</span>
+              </button>
+              <button
+                onClick={handleClear}
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-white/80 hover:bg-white/10 transition-colors"
+              >
+                <span>Clear</span>
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Main Focus Mode UI
+function FocusModeUI() {
+  const {
+    timerMode,
+    pomodoroPhase,
+    pomodorosCompleted,
+    isTimerRunning,
+    timerSeconds,
+    initialTimerSeconds,
+    totalSessionSeconds,
+    settings,
+    exitFocusMode,
+    setTimerMode,
+    setPomodoroPhase,
+    startTimer,
+    pauseTimer,
+    tick,
+  } = useFocusSessionStore();
+
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Calculate progress for arc indicator
+  const progress = timerMode === 'pomodoro' && initialTimerSeconds > 0
+    ? timerSeconds / initialTimerSeconds
+    : 0;
+
+  // Timer tick effect
+  useEffect(() => {
+    let interval: number | null = null;
+    if (isTimerRunning) {
+      interval = window.setInterval(() => {
+        tick();
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isTimerRunning, tick]);
+
+  // ESC key handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        exitFocusMode();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [exitFocusMode]);
+
+  const handleSwitchMode = () => {
+    setTimerMode(timerMode === 'pomodoro' ? 'countup' : 'pomodoro');
+    setShowSettings(false);
+  };
+
+  // Format time with m suffix for display
+  const formatTimeDisplay = (seconds: number, hideSeconds: boolean) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if (hideSeconds) {
+      if (hrs > 0) {
+        return `${hrs}h ${mins}m`;
+      }
+      return `${mins}m`;
+    }
+
+    if (hrs > 0) {
+      return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="fixed inset-0 z-40 flex flex-col">
+      {/* Header - Status and Exit button */}
+      <div
+        className="flex items-center justify-between p-6 animate-slideDown"
+        style={{ animationDelay: '0s' }}
+      >
+        {/* Left - Focus indicator and session time */}
+        <div className="flex items-center gap-3">
+          {/* Pulsing green dot */}
+          <div className="relative">
+            <div className="w-3 h-3 rounded-full bg-green-500" />
+            <div className="absolute inset-0 w-3 h-3 rounded-full bg-green-500 animate-ping opacity-75" />
+          </div>
+          <div>
+            <span className="text-white/90 font-medium">Focus Mode</span>
+            <span className="text-white/50 ml-2 text-sm">
+              {formatDuration(totalSessionSeconds)}
+            </span>
+          </div>
+        </div>
+
+        {/* Right - End Focus button only */}
+        <button
+          onClick={exitFocusMode}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-all"
+        >
+          <X size={18} />
+          <span className="text-sm font-medium">End Focus</span>
+          <span className="text-xs text-white/40 ml-1">ESC</span>
+        </button>
+      </div>
+
+      {/* Main content - Timer */}
+      <div className="flex-1 flex flex-col items-center justify-center px-8">
+        {/* Timer display with arc */}
+        <div className="relative animate-fadeIn" style={{ animationDelay: '0.1s' }}>
+          {timerMode === 'pomodoro' ? (
+            <ArcProgress progress={progress} size={340}>
+              <div className="flex flex-col items-center justify-center">
+                {/* FOCUS / BREAK tabs inside circle - clickable */}
+                <div className="flex items-center gap-6 mb-3">
+                  <button
+                    onClick={() => !isTimerRunning && setPomodoroPhase('focus')}
+                    disabled={isTimerRunning}
+                    className={`text-sm font-medium tracking-wider transition-colors ${
+                      pomodoroPhase === 'focus' ? 'text-white' : 'text-white/40 hover:text-white/60'
+                    } ${isTimerRunning ? 'cursor-default' : 'cursor-pointer'}`}
+                  >
+                    FOCUS
+                  </button>
+                  <button
+                    onClick={() => !isTimerRunning && setPomodoroPhase('break')}
+                    disabled={isTimerRunning}
+                    className={`text-sm font-medium tracking-wider transition-colors ${
+                      pomodoroPhase === 'break' ? 'text-white' : 'text-white/40 hover:text-white/60'
+                    } ${isTimerRunning ? 'cursor-default' : 'cursor-pointer'}`}
+                  >
+                    BREAK
+                  </button>
+                </div>
+
+                {/* Time with settings button */}
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="text-6xl font-extralight text-white tracking-tight">
+                    {formatTimeDisplay(timerSeconds, settings.hideSeconds)}
+                  </div>
+                  {/* Settings button next to timer */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowSettings(!showSettings)}
+                      className={`p-1.5 rounded-md transition-colors ${
+                        showSettings
+                          ? 'bg-white/20 text-white'
+                          : 'text-white/40 hover:text-white/70 hover:bg-white/10'
+                      }`}
+                    >
+                      <MoreHorizontal size={18} />
+                    </button>
+
+                    {/* Settings dropdown */}
+                    {showSettings && (
+                      <PomodoroSettingsDropdown onClose={() => setShowSettings(false)} onSwitchMode={handleSwitchMode} />
+                    )}
+                  </div>
+                </div>
+
+                {/* Focus input inside the arc */}
+                <FocusInput />
+
+                {/* Play/Pause button inside circle */}
+                <button
+                  onClick={isTimerRunning ? pauseTimer : startTimer}
+                  className={`mt-4 flex items-center justify-center w-12 h-12 rounded-full transition-all ${
+                    isTimerRunning
+                      ? 'bg-white/10 hover:bg-white/20 text-white'
+                      : 'bg-white/20 hover:bg-white/30 text-white'
+                  }`}
+                >
+                  {isTimerRunning ? <Pause size={20} /> : <Play size={20} className="ml-0.5" />}
+                </button>
+              </div>
+            </ArcProgress>
+          ) : (
+            /* Count Up mode - no arc, just centered content */
+            <div className="w-[340px] h-[340px] flex flex-col items-center justify-center">
+              {/* Time with settings button */}
+              <div className="flex items-center gap-2 mb-3">
+                <div className="text-6xl font-extralight text-white tracking-tight">
+                  {formatTimeDisplay(timerSeconds, settings.hideSeconds)}
+                </div>
+                {/* Settings button next to timer */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowSettings(!showSettings)}
+                    className={`p-1.5 rounded-md transition-colors ${
+                      showSettings
+                        ? 'bg-white/20 text-white'
+                        : 'text-white/40 hover:text-white/70 hover:bg-white/10'
+                    }`}
+                  >
+                    <MoreHorizontal size={18} />
+                  </button>
+
+                  {/* Settings dropdown */}
+                  {showSettings && (
+                    <CountUpSettingsDropdown onClose={() => setShowSettings(false)} onSwitchMode={handleSwitchMode} />
+                  )}
+                </div>
+              </div>
+
+              {/* Focus input */}
+              <FocusInput />
+
+              {/* Play/Pause button */}
+              <button
+                onClick={isTimerRunning ? pauseTimer : startTimer}
+                className={`mt-4 flex items-center justify-center w-12 h-12 rounded-full transition-all ${
+                  isTimerRunning
+                    ? 'bg-white/10 hover:bg-white/20 text-white'
+                    : 'bg-white/20 hover:bg-white/30 text-white'
+                }`}
+              >
+                {isTimerRunning ? <Pause size={20} /> : <Play size={20} className="ml-0.5" />}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Pomodoros completed */}
+        {timerMode === 'pomodoro' && pomodorosCompleted > 0 && (
+          <div
+            className="mt-4 text-sm text-white/40 animate-fadeIn"
+            style={{ animationDelay: '0.4s' }}
+          >
+            {pomodorosCompleted} {pomodorosCompleted === 1 ? 'pomodoro' : 'pomodoros'} completed
+          </div>
+        )}
+      </div>
+
+      {/* Footer - minimal */}
+      <div
+        className="p-6 text-center animate-fadeIn"
+        style={{ animationDelay: '0.5s' }}
+      >
+        <p className="text-white/30 text-sm italic">
+          {timerMode === 'pomodoro'
+            ? `Now is the time to tune out the world and focus.`
+            : 'Track your focused work time'}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Main overlay component - orchestrates all phases
+export function FocusModeOverlay() {
+  const { phase, setPhase, resetSession } = useFocusSessionStore();
+
+  // Handle phase transitions
+  const advancePhase = useCallback(() => {
+    switch (phase) {
+      case 'entering':
+        // After zoom animation, show transition screen
+        setTimeout(() => setPhase('transition'), 2000);
+        break;
+      case 'transition':
+        // After quote screen, show focus UI
+        setTimeout(() => setPhase('active'), 2200);
+        break;
+      case 'exiting':
+        // After fade out, show celebration
+        setTimeout(() => setPhase('celebration'), 400);
+        break;
+      case 'celebration':
+        // After celebration, start zoom out
+        setTimeout(() => setPhase('leaving'), 2800);
+        break;
+      case 'leaving':
+        // After zoom out, reset to idle
+        setTimeout(() => resetSession(), 2000);
+        break;
+    }
+  }, [phase, setPhase, resetSession]);
+
+  // Trigger phase advancement
+  useEffect(() => {
+    if (phase !== 'idle' && phase !== 'active') {
+      advancePhase();
+    }
+  }, [phase, advancePhase]);
+
+  // Don't render anything in idle state
+  if (phase === 'idle') return null;
+
+  return (
+    <>
+      {/* Transition screen */}
+      {phase === 'transition' && <TransitionScreen />}
+
+      {/* Focus Mode UI */}
+      {phase === 'active' && <FocusModeUI />}
+
+      {/* Exit animation */}
+      {phase === 'exiting' && (
+        <div className="fixed inset-0 z-40 animate-fadeOut">
+          <FocusModeUI />
+        </div>
+      )}
+
+      {/* Celebration screen */}
+      {phase === 'celebration' && <CelebrationScreen />}
+
+      {/* Animations CSS */}
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+          from { opacity: 1; }
+          to { opacity: 0; }
+        }
+
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes loadingDot {
+          0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+          40% { opacity: 1; transform: scale(1.2); }
+        }
+
+        @keyframes confetti {
+          0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .animate-fadeOut {
+          animation: fadeOut 0.4s ease-out forwards;
+        }
+
+        .animate-slideUp {
+          animation: slideUp 0.5s ease-out forwards;
+        }
+
+        .animate-slideDown {
+          animation: slideDown 0.5s ease-out forwards;
+        }
+
+        .animate-scaleIn {
+          animation: scaleIn 0.5s ease-out forwards;
+        }
+
+        .animate-loadingDot {
+          animation: loadingDot 1.4s ease-in-out infinite;
+        }
+
+        .animate-confetti {
+          animation: confetti linear forwards;
+        }
+      `}</style>
+    </>
+  );
+}
