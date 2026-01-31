@@ -47,6 +47,9 @@ interface SettingsState {
   // Widget visibility
   widgets: WidgetVisibility;
 
+  // Tasks settings
+  topTaskInCenter: boolean;  // Show first Today task in Focus section
+
   // Actions
   setUserName: (name: string) => void;
   setTimeFormat: (format: '12h' | '24h') => void;
@@ -59,6 +62,7 @@ interface SettingsState {
   setAccentColor: (color: AccentColor) => void;
   toggleWidget: (widget: keyof WidgetVisibility) => void;
   setWidgetVisibility: (widget: keyof WidgetVisibility, visible: boolean) => void;
+  setTopTaskInCenter: (enabled: boolean) => void;
 }
 
 // Chrome storage adapter for Zustand
@@ -104,6 +108,9 @@ export const useSettingsStore = create<SettingsState>()(
       themeMode: 'dark',
       accentColor: 'blue',
 
+      // Tasks defaults
+      topTaskInCenter: false,
+
       widgets: {
         clock: true,
         greeting: true,
@@ -142,6 +149,8 @@ export const useSettingsStore = create<SettingsState>()(
             [widget]: visible,
           },
         })),
+
+      setTopTaskInCenter: (enabled) => set({ topTaskInCenter: enabled }),
     }),
     {
       name: 'hour-one-settings',

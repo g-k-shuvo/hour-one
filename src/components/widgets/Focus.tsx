@@ -2,12 +2,17 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Check, Edit3, X, MoreHorizontal } from 'lucide-react';
 import { useFocusStore } from '@/stores/focusStore';
 import { useFocusSessionStore } from '@/stores/focusSessionStore';
+import { useTodosStore } from '@/stores/todosStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { Dropdown, DropdownItem } from '@/components/ui/Dropdown';
 import { useClickOutside } from '@/hooks/useClickOutside';
+import { SYSTEM_FOLDER_IDS } from '@/types';
 
 export function Focus() {
   const { focus, isCompleted, setFocus, toggleComplete, clearFocus } = useFocusStore();
   const { phase } = useFocusSessionStore();
+  const { tasks, toggleTask } = useTodosStore();
+  const { topTaskInCenter } = useSettingsStore();
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(focus);
   const [showMenu, setShowMenu] = useState(false);
@@ -16,6 +21,11 @@ export function Focus() {
 
   const handleCloseMenu = useCallback(() => setShowMenu(false), []);
   useClickOutside(menuContainerRef, handleCloseMenu, showMenu);
+
+  // Get the first incomplete task from Today folder
+  const topTodayTask = tasks.find(
+    (t) => t.folderId === SYSTEM_FOLDER_IDS.TODAY && !t.completed
+  );
 
   // Sync input value when focus changes (e.g., on day change)
   useEffect(() => {
@@ -69,8 +79,40 @@ export function Focus() {
     return null;
   }
 
-  // No focus set - show input prompt
+  // No focus set - show top Today task if enabled, otherwise show input prompt
   if (!focus && !isEditing) {
+    // Show top Today task if enabled and available
+    if (topTaskInCenter && topTodayTask) {
+      return (
+        <div className="relative w-full group">
+          <div className="flex items-center justify-center gap-2">
+            {/* Checkbox */}
+            <button
+              onClick={() => toggleTask(topTodayTask.id)}
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 border-white/40 text-transparent transition-all hover:border-white/60"
+              aria-label="Complete task"
+            >
+              <Check size={12} strokeWidth={3} />
+            </button>
+
+            {/* Task text */}
+            <h2
+              className="text-center text-xl font-light text-white max-w-sm truncate"
+              title={topTodayTask.text}
+            >
+              {topTodayTask.text}
+            </h2>
+          </div>
+
+          {/* Label */}
+          <p className="mt-2 text-center text-xs text-white/40">
+            Today's top task
+          </p>
+        </div>
+      );
+    }
+
+    // Default: show input prompt
     return (
       <div className="relative w-full">
         <button

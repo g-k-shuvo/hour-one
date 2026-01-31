@@ -12,7 +12,9 @@
       "Bash(git commit:*)",
       "Bash(git merge:*)",
       "Bash(npx tsc:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(dir:*)",
+      "Bash(git branch:*)"
     ]
   }
 }

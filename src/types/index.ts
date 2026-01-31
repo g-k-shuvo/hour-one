@@ -1,3 +1,22 @@
+// System folder IDs
+export const SYSTEM_FOLDER_IDS = {
+  TODAY: 'today',
+  INBOX: 'inbox',
+  DONE: 'done',
+} as const;
+
+export type SystemFolderId = typeof SYSTEM_FOLDER_IDS[keyof typeof SYSTEM_FOLDER_IDS];
+
+// Task Folder
+export interface TaskFolder {
+  id: string;
+  name: string;
+  icon: string;        // lucide icon name
+  isSystem: boolean;   // true = cannot delete
+  order: number;
+  color?: string;      // for custom folders
+}
+
 // Task types
 export interface Task {
   id: string;
@@ -5,6 +24,7 @@ export interface Task {
   completed: boolean;
   createdAt: string;
   completedAt?: string;
+  folderId: string;    // defaults to 'inbox'
 }
 
 // Quick Link types

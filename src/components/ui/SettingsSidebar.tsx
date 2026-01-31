@@ -6,6 +6,18 @@ import { getMantraById, getAllMantras } from '@/services/mantrasService';
 import { Toggle } from './Toggle';
 import { IconButton } from './IconButton';
 
+// Task integrations (non-functional placeholders)
+const TASK_INTEGRATIONS = [
+  { name: 'Asana', icon: '/icons/asana.svg' },
+  { name: 'Basecamp', icon: '/icons/basecamp.svg' },
+  { name: 'ClickUp', icon: '/icons/clickup.svg' },
+  { name: 'GitHub', icon: '/icons/github.svg' },
+  { name: 'Google Tasks', icon: '/icons/google-tasks.svg' },
+  { name: 'MS To Do', icon: '/icons/ms-todo.svg' },
+  { name: 'Todoist', icon: '/icons/todoist.svg' },
+  { name: 'Trello', icon: '/icons/trello.svg' },
+];
+
 type SettingsSection =
   | 'general'
   | 'theme'
@@ -60,6 +72,8 @@ export function SettingsSidebar() {
     setAccentColor,
     widgets,
     toggleWidget,
+    topTaskInCenter,
+    setTopTaskInCenter,
   } = useSettingsStore();
 
   const {
@@ -422,6 +436,36 @@ export function SettingsSidebar() {
                 title="Show tasks"
                 description="Display todo list panel"
               />
+              <Toggle
+                enabled={topTaskInCenter}
+                onChange={() => setTopTaskInCenter(!topTaskInCenter)}
+                title="Top task in center"
+                description="Show first Today task as daily focus"
+              />
+            </div>
+
+            {/* Integrations Section */}
+            <div className="mt-6 pt-4 border-t border-theme">
+              <h4 className="text-sm font-medium text-theme-primary mb-2">Integrations</h4>
+              <p className="text-xs text-theme-muted mb-4">Coming soon</p>
+
+              <div className="grid grid-cols-4 gap-3">
+                {TASK_INTEGRATIONS.map((integration) => (
+                  <button
+                    key={integration.name}
+                    disabled
+                    className="flex flex-col items-center gap-1.5 p-2 rounded-lg bg-theme-secondary opacity-50 cursor-not-allowed"
+                    title={`${integration.name} (Coming soon)`}
+                  >
+                    <img
+                      src={integration.icon}
+                      alt={integration.name}
+                      className="w-6 h-6"
+                    />
+                    <span className="text-[10px] text-theme-secondary">{integration.name}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         );
@@ -563,7 +607,7 @@ export function SettingsSidebar() {
                 </div>
 
                 {/* Section Content */}
-                <div className="flex-1 overflow-y-auto p-6">
+                <div className="flex-1 overflow-y-auto scrollbar-theme p-6">
                   {renderSectionContent()}
                 </div>
 

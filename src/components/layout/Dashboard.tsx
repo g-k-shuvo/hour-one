@@ -4,7 +4,7 @@ import { Clock } from '@/components/widgets/Clock';
 import { Greeting } from '@/components/widgets/Greeting';
 import { Focus } from '@/components/widgets/Focus';
 import { Quote } from '@/components/widgets/Quote';
-import { TodoList } from '@/components/widgets/TodoList';
+import { TodoList, TodoListHeaderActions } from '@/components/widgets/TodoList';
 import { QuickLinks, QuickLinksHeaderActions } from '@/components/widgets/QuickLinks';
 import { PinnedLinkItem, PinnedGroupItem } from '@/components/widgets/PinnedItem';
 import { SearchBar } from '@/components/widgets/SearchBar';
@@ -279,8 +279,9 @@ export function Dashboard() {
           isOpen={showTodos && widgets.todos}
           onClose={() => setShowTodos(false)}
           position="bottom-right"
-          title="Today's Tasks"
+          title="Tasks"
           maxWidth="max-w-sm"
+          headerActions={<TodoListHeaderActions />}
         >
           <TodoList />
         </PopupPanel>

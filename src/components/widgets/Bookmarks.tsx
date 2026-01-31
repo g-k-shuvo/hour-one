@@ -60,7 +60,7 @@ function NestedFolder({ bookmark, onClose }: { bookmark: BookmarkType; onClose: 
       {/* Nested dropdown - rendered via portal to escape parent stacking context */}
       {isOpen && bookmark.children && bookmark.children.length > 0 && createPortal(
         <div
-          className={`fixed z-[100] min-w-44 max-w-60 max-h-72 overflow-y-auto rounded-lg ${dropdown} py-1.5 shadow-xl`}
+          className={`fixed z-[100] min-w-44 max-w-60 max-h-72 overflow-y-auto scrollbar-thin rounded-lg ${dropdown} py-1.5 shadow-xl`}
           style={{
             top: position.top,
             left: position.left,
@@ -143,7 +143,7 @@ function BookmarkFolder({ bookmark, iconOnly }: { bookmark: BookmarkType; iconOn
       {/* Dropdown */}
       {isOpen && (
         <div
-          className={`absolute left-0 z-50 min-w-44 max-w-64 max-h-80 overflow-y-auto rounded-lg ${dropdown} py-1.5 shadow-xl ${
+          className={`absolute left-0 z-50 min-w-44 max-w-64 max-h-80 overflow-y-auto scrollbar-thin rounded-lg ${dropdown} py-1.5 shadow-xl ${
             openUpward ? 'bottom-full mb-1' : 'top-full mt-1'
           }`}
           style={{ animation: openUpward ? 'fadeInUp 150ms ease-out' : 'fadeIn 150ms ease-out' }}
