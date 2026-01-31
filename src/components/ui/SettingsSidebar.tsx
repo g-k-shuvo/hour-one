@@ -113,7 +113,7 @@ export function SettingsSidebar() {
 
             <div className="border-t border-theme pt-4">
               <p className="text-xs font-semibold text-theme-muted uppercase tracking-wider mb-3">Apps</p>
-              <div className="divide-y divide-theme-light">
+              <div className="divide-y divide-white/10">
                 <Toggle
                   enabled={widgets.clock}
                   onChange={() => toggleWidget('clock')}
@@ -143,12 +143,6 @@ export function SettingsSidebar() {
                   onChange={() => toggleWidget('search')}
                   title="Search"
                   description="Quick search bar"
-                />
-                <Toggle
-                  enabled={widgets.bookmarks}
-                  onChange={() => toggleWidget('bookmarks')}
-                  title="Bookmarks"
-                  description="Chrome bookmarks bar"
                 />
               </div>
             </div>
@@ -289,7 +283,7 @@ export function SettingsSidebar() {
             <h3 className="text-lg font-semibold text-theme-primary mb-1">Quotes</h3>
             <p className="text-sm text-theme-secondary mb-6">Daily inspirational quotes</p>
 
-            <div className="divide-y divide-theme-light">
+            <div className="divide-y divide-white/10">
               <Toggle
                 enabled={widgets.quote}
                 onChange={() => toggleWidget('quote')}
@@ -316,7 +310,7 @@ export function SettingsSidebar() {
             <h3 className="text-lg font-semibold text-theme-primary mb-1">Weather</h3>
             <p className="text-sm text-theme-secondary mb-6">Weather display settings</p>
 
-            <div className="divide-y divide-theme-light">
+            <div className="divide-y divide-white/10">
               <Toggle
                 enabled={widgets.weather}
                 onChange={() => toggleWidget('weather')}
@@ -361,7 +355,7 @@ export function SettingsSidebar() {
             <h3 className="text-lg font-semibold text-theme-primary mb-1">Search</h3>
             <p className="text-sm text-theme-secondary mb-6">Search bar settings</p>
 
-            <div className="divide-y divide-theme-light">
+            <div className="divide-y divide-white/10">
               <Toggle
                 enabled={widgets.search}
                 onChange={() => toggleWidget('search')}
@@ -395,15 +389,21 @@ export function SettingsSidebar() {
       case 'links':
         return (
           <div>
-            <h3 className="text-lg font-semibold text-theme-primary mb-1">Quick Links</h3>
-            <p className="text-sm text-theme-secondary mb-6">Manage your quick links</p>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Links & Bookmarks</h3>
+            <p className="text-sm text-theme-secondary mb-6">Manage your links and bookmarks</p>
 
-            <div className="divide-y divide-theme-light">
+            <div className="divide-y divide-white/10">
               <Toggle
                 enabled={widgets.quickLinks}
                 onChange={() => toggleWidget('quickLinks')}
-                title="Show quick links"
-                description="Display quick links panel"
+                title="Quick Links"
+                description="Custom links panel with pinning"
+              />
+              <Toggle
+                enabled={widgets.bookmarks}
+                onChange={() => toggleWidget('bookmarks')}
+                title="Bookmarks Bar"
+                description="Chrome bookmarks bar shortcuts"
               />
             </div>
           </div>
@@ -415,7 +415,7 @@ export function SettingsSidebar() {
             <h3 className="text-lg font-semibold text-theme-primary mb-1">Tasks</h3>
             <p className="text-sm text-theme-secondary mb-6">Todo list settings</p>
 
-            <div className="divide-y divide-theme-light">
+            <div className="divide-y divide-white/10">
               <Toggle
                 enabled={widgets.todos}
                 onChange={() => toggleWidget('todos')}
@@ -634,7 +634,7 @@ function MantraSettings({
       <h3 className="text-lg font-semibold text-theme-primary mb-1">Mantra</h3>
       <p className="text-sm text-theme-secondary mb-6">Daily inspirational mantras</p>
 
-      <div className="divide-y divide-theme-light">
+      <div className="divide-y divide-white/10">
         <Toggle
           enabled={showMantra}
           onChange={() => setShowMantra(!showMantra)}

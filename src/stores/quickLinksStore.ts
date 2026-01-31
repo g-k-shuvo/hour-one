@@ -1,15 +1,32 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { QuickLink } from '@/types';
+import type { QuickLink, LinkGroup } from '@/types';
 
 interface QuickLinksState {
   links: QuickLink[];
+  groups: LinkGroup[];
+  viewMode: 'tile' | 'list';
 
-  // Actions
-  addLink: (name: string, url: string) => void;
-  updateLink: (id: string, name: string, url: string) => void;
+  // Link actions
+  addLink: (name: string, url: string, groupId?: string, pinned?: boolean) => void;
+  updateLink: (id: string, updates: Partial<Omit<QuickLink, 'id'>>) => void;
   deleteLink: (id: string) => void;
   reorderLinks: (links: QuickLink[]) => void;
+
+  // Group actions
+  addGroup: (name: string, color?: string) => void;
+  updateGroup: (id: string, updates: Partial<Omit<LinkGroup, 'id'>>) => void;
+  deleteGroup: (id: string) => void;
+
+  // View mode
+  setViewMode: (mode: 'tile' | 'list') => void;
+
+  // Pinning actions
+  pinLink: (id: string) => void;
+  unpinLink: (id: string) => void;
+  pinGroup: (id: string) => void;
+  unpinGroup: (id: string) => void;
+  reorderPinned: (items: Array<{ type: 'link' | 'group'; id: string }>) => void;
 }
 
 // Generate unique ID
@@ -63,27 +80,47 @@ const chromeStorage = {
   },
 };
 
-// Default links for new users
-const DEFAULT_LINKS: QuickLink[] = [
-  { id: 'default-1', name: 'Google', url: 'https://google.com', icon: getFaviconUrl('https://google.com') },
-  { id: 'default-2', name: 'YouTube', url: 'https://youtube.com', icon: getFaviconUrl('https://youtube.com') },
-  { id: 'default-3', name: 'GitHub', url: 'https://github.com', icon: getFaviconUrl('https://github.com') },
-];
+// Max pinned items
+const MAX_PINNED = 5;
+
+// Get next pinned order
+function getNextPinnedOrder(links: QuickLink[], groups: LinkGroup[]): number {
+  const allPinnedOrders = [
+    ...links.filter((l) => l.pinned).map((l) => l.pinnedOrder ?? 0),
+    ...groups.filter((g) => g.pinned).map((g) => g.pinnedOrder ?? 0),
+  ];
+  return allPinnedOrders.length > 0 ? Math.max(...allPinnedOrders) + 1 : 0;
+}
+
+// Count pinned items
+function countPinned(links: QuickLink[], groups: LinkGroup[]): number {
+  return (
+    links.filter((l) => l.pinned).length + groups.filter((g) => g.pinned).length
+  );
+}
 
 export const useQuickLinksStore = create<QuickLinksState>()(
   persist(
-    (set) => ({
-      links: DEFAULT_LINKS,
+    (set, get) => ({
+      links: [],
+      groups: [],
+      viewMode: 'tile',
 
-      addLink: (name, url) => {
+      addLink: (name, url, groupId, pinned) => {
         const normalizedUrl = normalizeUrl(url);
         if (!normalizedUrl) return;
+
+        const { links, groups } = get();
+        const canPin = pinned && countPinned(links, groups) < MAX_PINNED;
 
         const newLink: QuickLink = {
           id: generateId(),
           name: name.trim() || new URL(normalizedUrl).hostname,
           url: normalizedUrl,
           icon: getFaviconUrl(normalizedUrl),
+          groupId,
+          pinned: canPin,
+          pinnedOrder: canPin ? getNextPinnedOrder(links, groups) : undefined,
         };
 
         set((state) => ({
@@ -91,21 +128,26 @@ export const useQuickLinksStore = create<QuickLinksState>()(
         }));
       },
 
-      updateLink: (id, name, url) => {
-        const normalizedUrl = normalizeUrl(url);
-        if (!normalizedUrl) return;
-
+      updateLink: (id, updates) => {
         set((state) => ({
-          links: state.links.map((link) =>
-            link.id === id
-              ? {
-                  ...link,
-                  name: name.trim() || new URL(normalizedUrl).hostname,
-                  url: normalizedUrl,
-                  icon: getFaviconUrl(normalizedUrl),
-                }
-              : link
-          ),
+          links: state.links.map((link) => {
+            if (link.id !== id) return link;
+
+            const updatedLink = { ...link, ...updates };
+
+            // If URL changed, update the icon
+            if (updates.url && updates.url !== link.url) {
+              const normalizedUrl = normalizeUrl(updates.url);
+              updatedLink.url = normalizedUrl;
+              updatedLink.icon = getFaviconUrl(normalizedUrl);
+              if (updates.name) {
+                updatedLink.name =
+                  updates.name.trim() || new URL(normalizedUrl).hostname;
+              }
+            }
+
+            return updatedLink;
+          }),
         }));
       },
 
@@ -118,6 +160,123 @@ export const useQuickLinksStore = create<QuickLinksState>()(
       reorderLinks: (links) => {
         set({ links });
       },
+
+      addGroup: (name, color) => {
+        const newGroup: LinkGroup = {
+          id: generateId(),
+          name: name.trim(),
+          color,
+        };
+
+        set((state) => ({
+          groups: [...state.groups, newGroup],
+        }));
+      },
+
+      updateGroup: (id, updates) => {
+        set((state) => ({
+          groups: state.groups.map((group) =>
+            group.id === id ? { ...group, ...updates } : group
+          ),
+        }));
+      },
+
+      deleteGroup: (id) => {
+        set((state) => ({
+          groups: state.groups.filter((group) => group.id !== id),
+          // Unassign links from deleted group
+          links: state.links.map((link) =>
+            link.groupId === id ? { ...link, groupId: undefined } : link
+          ),
+        }));
+      },
+
+      setViewMode: (mode) => {
+        set({ viewMode: mode });
+      },
+
+      pinLink: (id) => {
+        const { links, groups } = get();
+        if (countPinned(links, groups) >= MAX_PINNED) return;
+
+        set((state) => ({
+          links: state.links.map((link) =>
+            link.id === id
+              ? {
+                  ...link,
+                  pinned: true,
+                  pinnedOrder: getNextPinnedOrder(state.links, state.groups),
+                }
+              : link
+          ),
+        }));
+      },
+
+      unpinLink: (id) => {
+        set((state) => ({
+          links: state.links.map((link) =>
+            link.id === id
+              ? { ...link, pinned: false, pinnedOrder: undefined }
+              : link
+          ),
+        }));
+      },
+
+      pinGroup: (id) => {
+        const { links, groups } = get();
+        if (countPinned(links, groups) >= MAX_PINNED) return;
+
+        set((state) => ({
+          groups: state.groups.map((group) =>
+            group.id === id
+              ? {
+                  ...group,
+                  pinned: true,
+                  pinnedOrder: getNextPinnedOrder(state.links, state.groups),
+                }
+              : group
+          ),
+        }));
+      },
+
+      unpinGroup: (id) => {
+        set((state) => ({
+          groups: state.groups.map((group) =>
+            group.id === id
+              ? { ...group, pinned: false, pinnedOrder: undefined }
+              : group
+          ),
+        }));
+      },
+
+      reorderPinned: (items) => {
+        set((state) => {
+          const newLinks = [...state.links];
+          const newGroups = [...state.groups];
+
+          items.forEach((item, index) => {
+            if (item.type === 'link') {
+              const linkIndex = newLinks.findIndex((l) => l.id === item.id);
+              if (linkIndex !== -1) {
+                newLinks[linkIndex] = {
+                  ...newLinks[linkIndex],
+                  pinnedOrder: index,
+                };
+              }
+            } else {
+              const groupIndex = newGroups.findIndex((g) => g.id === item.id);
+              if (groupIndex !== -1) {
+                newGroups[groupIndex] = {
+                  ...newGroups[groupIndex],
+                  pinnedOrder: index,
+                };
+              }
+            }
+          });
+
+          return { links: newLinks, groups: newGroups };
+        });
+      },
     }),
     {
       name: 'hour-one-quick-links',
@@ -125,3 +284,20 @@ export const useQuickLinksStore = create<QuickLinksState>()(
     }
   )
 );
+
+// Selector for pinned items sorted by order
+export function usePinnedItems() {
+  const { links, groups } = useQuickLinksStore();
+
+  const pinnedLinks = links
+    .filter((l) => l.pinned)
+    .map((l) => ({ type: 'link' as const, item: l }));
+
+  const pinnedGroups = groups
+    .filter((g) => g.pinned)
+    .map((g) => ({ type: 'group' as const, item: g }));
+
+  return [...pinnedLinks, ...pinnedGroups].sort(
+    (a, b) => (a.item.pinnedOrder ?? 0) - (b.item.pinnedOrder ?? 0)
+  );
+}
