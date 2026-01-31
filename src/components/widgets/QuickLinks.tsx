@@ -233,11 +233,14 @@ export function QuickLinks(_props: QuickLinksProps) {
         </button>
       </div>
 
-      {/* Groups with their links */}
-      {linksByGroup.map(({ group, links: groupLinks }) => (
+      {/* Scrollable content */}
+      <div className="max-h-60 overflow-y-auto scrollbar-thin">
+        {/* Groups with their links */}
+        {linksByGroup.map(({ group, links: groupLinks }) => (
         <div key={group.id} className="mb-4">
           <GroupHeader
             group={group}
+            groupLinks={groupLinks}
             onEdit={() => setFormView({ type: 'edit-group', groupId: group.id })}
             onDelete={() => handleDeleteGroup(group.id)}
             onPin={() =>
@@ -326,6 +329,7 @@ export function QuickLinks(_props: QuickLinksProps) {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -373,6 +377,7 @@ export function QuickLinksHeaderActions({
 // Group Header Component
 interface GroupHeaderProps {
   group: LinkGroup;
+  groupLinks: QuickLink[];
   onEdit: () => void;
   onDelete: () => void;
   onPin: () => void;
@@ -386,6 +391,7 @@ interface GroupHeaderProps {
 
 function GroupHeader({
   group,
+  groupLinks,
   onEdit,
   onDelete,
   onPin,
@@ -397,6 +403,12 @@ function GroupHeader({
   onCancelDelete,
 }: GroupHeaderProps) {
   const [showMenu, setShowMenu] = useState(false);
+
+  const handleOpenAll = () => {
+    groupLinks.forEach((link) => {
+      window.open(link.url, '_blank');
+    });
+  };
 
   // Show delete confirmation
   if (isConfirmingDelete) {
@@ -443,6 +455,15 @@ function GroupHeader({
         >
           {group.name}
         </span>
+        {groupLinks.length > 0 && (
+          <button
+            onClick={handleOpenAll}
+            className="rounded p-1 text-white/40 transition-all hover:bg-white/10 hover:text-white/70"
+            title={`Open all ${groupLinks.length} links in new tabs`}
+          >
+            <ExternalLink size={14} />
+          </button>
+        )}
         {isPinned && <Pin size={10} className="text-white/40" />}
 
         {/* Actions */}
@@ -460,6 +481,15 @@ function GroupHeader({
 
           {showMenu && (
             <Dropdown position="right" width="w-32">
+              {groupLinks.length > 0 && (
+                <>
+                  <DropdownItem onClick={() => { handleOpenAll(); setShowMenu(false); }}>
+                    <ExternalLink size={12} />
+                    Open All
+                  </DropdownItem>
+                  <DropdownDivider />
+                </>
+              )}
               <DropdownItem onClick={onAddLink}>
                 <Plus size={12} />
                 Add Link
