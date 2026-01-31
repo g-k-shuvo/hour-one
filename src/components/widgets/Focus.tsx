@@ -1,7 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Check, Edit3, X, MoreHorizontal } from 'lucide-react';
 import { useFocusStore } from '@/stores/focusStore';
 import { useFocusSessionStore } from '@/stores/focusSessionStore';
+import { Dropdown, DropdownItem } from '@/components/ui/Dropdown';
+import { useClickOutside } from '@/hooks/useClickOutside';
 
 export function Focus() {
   const { focus, isCompleted, setFocus, toggleComplete, clearFocus } = useFocusStore();
@@ -10,6 +12,10 @@ export function Focus() {
   const [inputValue, setInputValue] = useState(focus);
   const [showMenu, setShowMenu] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const menuContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleCloseMenu = useCallback(() => setShowMenu(false), []);
+  useClickOutside(menuContainerRef, handleCloseMenu, showMenu);
 
   // Sync input value when focus changes (e.g., on day change)
   useEffect(() => {
@@ -107,6 +113,7 @@ export function Focus() {
   // Focus set - show focus with checkbox, menu, and focus button
   return (
     <div className="relative w-full group">
+      {/* Centered content */}
       <div className="flex items-center justify-center gap-2">
         {/* Checkbox on left */}
         <button
@@ -132,48 +139,33 @@ export function Focus() {
         >
           {focus}
         </h2>
+      </div>
 
-        {/* Three dots menu - visible on hover */}
-        <div className="relative">
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            className={`rounded-full p-0.5 transition-all hover:bg-white/10 hover:text-white/60 ${
-              showMenu ? 'opacity-100 text-white/60' : 'opacity-0 group-hover:opacity-100 text-white/40'
-            }`}
-            aria-label="Focus options"
-          >
-            <MoreHorizontal size={16} />
-          </button>
+      {/* Three dots menu - absolute positioned on right */}
+      <div ref={menuContainerRef} className="absolute -right-8 top-1/2 -translate-y-1/2">
+        <button
+          onClick={() => setShowMenu(!showMenu)}
+          className={`rounded-full p-1 transition-all hover:bg-white/10 hover:text-white/60 ${
+            showMenu ? 'opacity-100 text-white/60' : 'opacity-0 group-hover:opacity-100 text-white/40'
+          }`}
+          aria-label="Focus options"
+        >
+          <MoreHorizontal size={16} />
+        </button>
 
-          {/* Dropdown menu */}
-          {showMenu && (
-            <>
-              <div
-                className="fixed inset-0 z-40"
-                onClick={() => setShowMenu(false)}
-              />
-              <div
-                className="absolute left-0 top-full mt-1 z-50 w-32 rounded-lg bg-white py-1.5 shadow-xl"
-                style={{ animation: 'fadeIn 150ms ease-out' }}
-              >
-                <button
-                  onClick={handleEdit}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  <Edit3 size={14} />
-                  <span>Edit</span>
-                </button>
-                <button
-                  onClick={handleClear}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  <X size={14} />
-                  <span>Clear</span>
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+        {/* Dropdown menu */}
+        {showMenu && (
+          <Dropdown position="right" width="w-32">
+            <DropdownItem onClick={handleEdit}>
+              <Edit3 size={14} />
+              <span>Edit</span>
+            </DropdownItem>
+            <DropdownItem onClick={handleClear}>
+              <X size={14} />
+              <span>Clear</span>
+            </DropdownItem>
+          </Dropdown>
+        )}
       </div>
 
       {/* Completed message */}
@@ -186,12 +178,6 @@ export function Focus() {
         </button>
       )}
 
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }

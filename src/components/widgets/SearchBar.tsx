@@ -1,6 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Search, MoreHorizontal } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { Dropdown, DropdownItem, DropdownLabel } from '@/components/ui/Dropdown';
+import { useClickOutside } from '@/hooks/useClickOutside';
 
 // Search engine configurations with icons
 const SEARCH_ENGINES = {
@@ -61,6 +63,10 @@ export function SearchBar() {
   const [isFocused, setIsFocused] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const menuContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleCloseMenu = useCallback(() => setShowMenu(false), []);
+  useClickOutside(menuContainerRef, handleCloseMenu, showMenu);
 
   const engine = SEARCH_ENGINES[searchProvider];
 
@@ -80,8 +86,8 @@ export function SearchBar() {
   };
 
   return (
-    <div className="relative flex items-center gap-2 group">
-      <form onSubmit={handleSubmit} className="flex-1">
+    <div className="relative group">
+      <form onSubmit={handleSubmit}>
         <div
           className={`flex items-center gap-2.5 rounded-full border bg-white/10 px-3 py-2.5 backdrop-blur-sm transition-all ${
             isFocused
@@ -116,58 +122,38 @@ export function SearchBar() {
         </div>
       </form>
 
-      {/* Three dots menu button - visible on hover */}
-      <button
-        onClick={() => setShowMenu(!showMenu)}
-        className={`rounded-full p-1.5 transition-all hover:bg-white/10 hover:text-white/60 ${
-          showMenu ? 'opacity-100 text-white/60' : 'opacity-0 group-hover:opacity-100 text-white/40'
-        }`}
-        aria-label="Search settings"
-      >
-        <MoreHorizontal size={16} />
-      </button>
+      {/* Three dots menu button - absolute positioned on right */}
+      <div ref={menuContainerRef} className="absolute -right-8 top-1/2 -translate-y-1/2">
+        <button
+          onClick={() => setShowMenu(!showMenu)}
+          className={`rounded-full p-1.5 transition-all hover:bg-white/10 hover:text-white/60 ${
+            showMenu ? 'opacity-100 text-white/60' : 'opacity-0 group-hover:opacity-100 text-white/40'
+          }`}
+          aria-label="Search settings"
+        >
+          <MoreHorizontal size={16} />
+        </button>
 
-      {/* Dropdown menu */}
-      {showMenu && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setShowMenu(false)}
-          />
-          <div
-            className="absolute right-0 top-full mt-1 z-50 w-36 rounded-lg bg-white py-1.5 shadow-xl"
-            style={{ animation: 'fadeIn 150ms ease-out' }}
-          >
-            <p className="px-3 py-0.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-              Search with
-            </p>
+        {/* Dropdown menu */}
+        {showMenu && (
+          <Dropdown position="right" width="w-36">
+            <DropdownLabel>Search with</DropdownLabel>
             {(['google', 'bing', 'duckduckgo', 'ecosia'] as const).map((eng) => (
-              <button
+              <DropdownItem
                 key={eng}
                 onClick={() => {
                   setSearchProvider(eng);
                   setShowMenu(false);
                 }}
-                className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors ${
-                  searchProvider === eng
-                    ? 'bg-gray-100 text-gray-900'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
+                active={searchProvider === eng}
               >
                 <span className="scale-75">{SEARCH_ENGINES[eng].icon}</span>
                 <span>{SEARCH_ENGINES[eng].name}</span>
-              </button>
+              </DropdownItem>
             ))}
-          </div>
-        </>
-      )}
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+          </Dropdown>
+        )}
+      </div>
     </div>
   );
 }

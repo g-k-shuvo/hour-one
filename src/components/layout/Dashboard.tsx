@@ -5,7 +5,8 @@ import { Greeting } from '@/components/widgets/Greeting';
 import { Focus } from '@/components/widgets/Focus';
 import { Quote } from '@/components/widgets/Quote';
 import { TodoList } from '@/components/widgets/TodoList';
-import { QuickLinks } from '@/components/widgets/QuickLinks';
+import { QuickLinks, QuickLinksHeaderActions } from '@/components/widgets/QuickLinks';
+import { PinnedLinkItem, PinnedGroupItem } from '@/components/widgets/PinnedItem';
 import { SearchBar } from '@/components/widgets/SearchBar';
 import { Weather } from '@/components/widgets/Weather';
 import { Bookmarks } from '@/components/widgets/Bookmarks';
@@ -13,11 +14,13 @@ import { Background } from '@/components/widgets/Background';
 import { FocusModeOverlay } from '@/components/widgets/FocusModeOverlay';
 import { SettingsSidebar } from '@/components/ui/SettingsSidebar';
 import { IconButton } from '@/components/ui/IconButton';
+import { PopupPanel } from '@/components/ui/PopupPanel';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTodosStore } from '@/stores/todosStore';
 import { useWeatherStore } from '@/stores/weatherStore';
 import { useFocusSessionStore } from '@/stores/focusSessionStore';
 import { useFocusStore } from '@/stores/focusStore';
+import { useQuickLinksStore, usePinnedItems } from '@/stores/quickLinksStore';
 
 type CenterMode = 'focus' | 'search';
 
@@ -27,6 +30,8 @@ export function Dashboard() {
   const { weather } = useWeatherStore();
   const { phase, enterFocusMode } = useFocusSessionStore();
   const { focus } = useFocusStore();
+  const { links } = useQuickLinksStore();
+  const pinnedItems = usePinnedItems();
 
   const [showTodos, setShowTodos] = useState(false);
   const [showLinks, setShowLinks] = useState(false);
@@ -78,6 +83,29 @@ export function Dashboard() {
               onClick={() => setShowLinks(!showLinks)}
               label="Quick Links"
             />
+
+            {/* Pinned Items Bar */}
+            {pinnedItems.length > 0 && (
+              <div className="flex items-center gap-0.5 ml-1 pl-2 border-l border-white/10">
+                {pinnedItems.map((item) =>
+                  item.type === 'link' ? (
+                    <PinnedLinkItem
+                      key={item.item.id}
+                      link={item.item}
+                      onEdit={() => setShowLinks(true)}
+                    />
+                  ) : (
+                    <PinnedGroupItem
+                      key={item.item.id}
+                      group={item.item}
+                      links={links.filter((l) => l.groupId === item.item.id)}
+                      onEdit={() => setShowLinks(true)}
+                    />
+                  )
+                )}
+              </div>
+            )}
+
             <IconButton
               icon={Play}
               onClick={() => enterFocusMode(focus)}
@@ -118,23 +146,23 @@ export function Dashboard() {
             {widgets.greeting && <Greeting />}
           </div>
 
-          {/* Focus/Search container with mode toggle on left */}
+          {/* Focus/Search container with mode toggle */}
           <div
-            className="flex items-center justify-center gap-3 w-full max-w-xl mt-8"
+            className="relative w-full max-w-xl mt-8 group/toggle"
             style={{
               animation: isReturningFromFocus ? `fadeInStagger 0.5s ease-out ${getReturnDelay(4)} both` : undefined,
             }}
           >
-            {/* Mode toggle - on the left side */}
+            {/* Mode toggle - absolute positioned on left */}
             {showToggle && (
-              <div className="flex items-center gap-1 flex-shrink-0">
+              <div className="absolute -left-12 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/toggle:opacity-100 transition-opacity">
                 {/* Expand/collapse button */}
                 <button
                   onClick={() => setShowModeToggle(!showModeToggle)}
-                  className={`rounded-full p-1.5 transition-all ${
+                  className={`rounded-full p-1.5 transition-all hover:bg-white/10 ${
                     showModeToggle
-                      ? 'bg-white/20 text-white'
-                      : 'text-white/40 hover:text-white/60 hover:bg-white/10'
+                      ? 'bg-white/20 text-white opacity-100'
+                      : 'text-white/40 hover:text-white/60'
                   }`}
                   aria-label="Toggle mode selector"
                   title="Switch between Focus and Search"
@@ -177,8 +205,8 @@ export function Dashboard() {
               </div>
             )}
 
-            {/* Content area */}
-            <div className="w-full max-w-lg">
+            {/* Content area - centered */}
+            <div className="w-full max-w-lg mx-auto">
               {showToggle ? (
                 <>
                   {/* Focus or Search based on mode (when both enabled) */}
@@ -246,62 +274,31 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Todo List Panel (slides in from right) */}
-        {showTodos && widgets.todos && (
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setShowTodos(false)}
-          >
-            <div className="absolute inset-0 bg-black/20" />
-            <div
-              className="absolute right-0 top-0 h-full w-80 bg-black/40 backdrop-blur-md p-4 shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-              style={{ animation: 'slideInRight 200ms ease-out' }}
-            >
-              <TodoList />
-            </div>
-          </div>
-        )}
+        {/* Todo List Popup */}
+        <PopupPanel
+          isOpen={showTodos && widgets.todos}
+          onClose={() => setShowTodos(false)}
+          position="bottom-right"
+          title="Today's Tasks"
+          maxWidth="max-w-sm"
+        >
+          <TodoList />
+        </PopupPanel>
 
-        {/* Quick Links Panel (slides in from left) */}
-        {showLinks && widgets.quickLinks && (
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setShowLinks(false)}
-          >
-            <div className="absolute inset-0 bg-black/20" />
-            <div
-              className="absolute left-0 top-0 h-full w-80 bg-black/40 backdrop-blur-md p-4 shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-              style={{ animation: 'slideInLeft 200ms ease-out' }}
-            >
-              <QuickLinks />
-            </div>
-          </div>
-        )}
+        {/* Quick Links Popup */}
+        <PopupPanel
+          isOpen={showLinks && widgets.quickLinks}
+          onClose={() => setShowLinks(false)}
+          position="top-left"
+          title="Quick Links"
+          maxWidth="max-w-sm"
+          headerActions={<QuickLinksHeaderActions />}
+        >
+          <QuickLinks />
+        </PopupPanel>
       </main>
 
       <style>{`
-        @keyframes slideInRight {
-          from {
-            opacity: 0;
-            transform: translateX(100%);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        @keyframes slideInLeft {
-          from {
-            opacity: 0;
-            transform: translateX(-100%);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
         @keyframes expandIn {
           from {
             opacity: 0;

@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MoreHorizontal, Clock as ClockIcon, Circle } from 'lucide-react';
 import { useSettingsStore, type AnalogClockVariant } from '@/stores/settingsStore';
+import { useDropdownTheme } from '@/hooks/useTheme';
+import { useClickOutside } from '@/hooks/useClickOutside';
 
 const ROMAN_NUMERALS = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
 
@@ -260,10 +262,18 @@ const VARIANT_LABELS: Record<AnalogClockVariant, string> = {
 
 export function Clock() {
   const { timeFormat, clockStyle, analogClockVariant, setTimeFormat, setClockStyle, setAnalogClockVariant } = useSettingsStore();
+  const { dropdown, menuItem, menuItemActive, sectionLabel, divider } = useDropdownTheme();
   const [time, setTime] = useState(new Date());
   const [showConfig, setShowConfig] = useState(false);
   const [configPosition, setConfigPosition] = useState({ top: 0, left: 0 });
   const configButtonRef = useRef<HTMLButtonElement>(null);
+  const dropdownContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleCloseConfig = useCallback(() => {
+    setShowConfig(false);
+  }, []);
+
+  useClickOutside(dropdownContainerRef, handleCloseConfig, showConfig);
 
   // Use faster updates for badge variant (smooth second dot)
   useEffect(() => {
@@ -315,34 +325,34 @@ export function Clock() {
         </time>
       )}
 
-      {/* Config button - visible on hover */}
-      <button
-        ref={configButtonRef}
-        onClick={handleConfigToggle}
-        className={`absolute -right-8 top-1/2 -translate-y-1/2 rounded-full p-1.5 transition-all hover:bg-white/10 hover:text-white/60 ${
-          showConfig ? 'opacity-100 text-white/60' : 'opacity-0 group-hover:opacity-100 text-white/40'
-        }`}
-        aria-label="Clock settings"
-      >
-        <MoreHorizontal size={16} />
-      </button>
+      {/* Config button and popup container */}
+      <div ref={dropdownContainerRef}>
+        {/* Config button - visible on hover */}
+        <button
+          ref={configButtonRef}
+          onClick={handleConfigToggle}
+          className={`absolute -right-8 top-1/2 -translate-y-1/2 rounded-full p-1.5 transition-all hover:bg-white/10 hover:text-white/60 ${
+            showConfig ? 'opacity-100 text-white/60' : 'opacity-0 group-hover:opacity-100 text-white/40'
+          }`}
+          aria-label="Clock settings"
+        >
+          <MoreHorizontal size={16} />
+        </button>
 
-      {/* Config popup */}
-      {showConfig && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setShowConfig(false)} />
+        {/* Config popup */}
+        {showConfig && (
           <div
-            className="fixed z-50 w-40 rounded-lg bg-neutral-900 border border-white/10 py-2 shadow-xl"
+            className={`fixed z-50 w-40 rounded-lg ${dropdown} py-2 shadow-xl`}
             style={{ top: configPosition.top, left: configPosition.left }}
           >
             {/* Time format section */}
-            <p className="px-3 pb-1.5 text-[10px] font-semibold text-white/40 uppercase tracking-wider">
+            <p className={`px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider ${sectionLabel}`}>
               Format
             </p>
             <button
               onClick={() => setTimeFormat('12h')}
               className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm transition-colors ${
-                timeFormat === '12h' ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5'
+                timeFormat === '12h' ? menuItemActive : menuItem
               }`}
             >
               <span>12-hour</span>
@@ -350,21 +360,21 @@ export function Clock() {
             <button
               onClick={() => setTimeFormat('24h')}
               className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm transition-colors ${
-                timeFormat === '24h' ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5'
+                timeFormat === '24h' ? menuItemActive : menuItem
               }`}
             >
               <span>24-hour</span>
             </button>
 
             {/* Clock style section */}
-            <div className="my-1.5 border-t border-white/10" />
-            <p className="px-3 pb-1.5 text-[10px] font-semibold text-white/40 uppercase tracking-wider">
+            <div className={`my-1.5 border-t ${divider}`} />
+            <p className={`px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider ${sectionLabel}`}>
               Style
             </p>
             <button
               onClick={() => setClockStyle('digital')}
               className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm transition-colors ${
-                clockStyle === 'digital' ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5'
+                clockStyle === 'digital' ? menuItemActive : menuItem
               }`}
             >
               <ClockIcon size={14} />
@@ -373,7 +383,7 @@ export function Clock() {
             <button
               onClick={() => setClockStyle('analog')}
               className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm transition-colors ${
-                clockStyle === 'analog' ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5'
+                clockStyle === 'analog' ? menuItemActive : menuItem
               }`}
             >
               <Circle size={14} />
@@ -383,8 +393,8 @@ export function Clock() {
             {/* Analog variant section - only show when analog is selected */}
             {clockStyle === 'analog' && (
               <>
-                <div className="my-1.5 border-t border-white/10" />
-                <p className="px-3 pb-1.5 text-[10px] font-semibold text-white/40 uppercase tracking-wider">
+                <div className={`my-1.5 border-t ${divider}`} />
+                <p className={`px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider ${sectionLabel}`}>
                   Variant
                 </p>
                 {(['classic', 'minimal', 'modern', 'roman', 'numbered', 'badge'] as const).map((variant) => (
@@ -392,7 +402,7 @@ export function Clock() {
                     key={variant}
                     onClick={() => setAnalogClockVariant(variant)}
                     className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm transition-colors ${
-                      analogClockVariant === variant ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5'
+                      analogClockVariant === variant ? menuItemActive : menuItem
                     }`}
                   >
                     <span>{VARIANT_LABELS[variant]}</span>
@@ -401,8 +411,8 @@ export function Clock() {
               </>
             )}
           </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 }

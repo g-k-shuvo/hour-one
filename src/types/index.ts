@@ -13,6 +13,17 @@ export interface QuickLink {
   name: string;
   url: string;
   icon?: string;
+  groupId?: string;      // optional group association
+  pinned?: boolean;      // pinned to dashboard
+  pinnedOrder?: number;  // order in pinned bar
+}
+
+export interface LinkGroup {
+  id: string;
+  name: string;
+  color?: string;        // optional accent color
+  pinned?: boolean;
+  pinnedOrder?: number;
 }
 
 // Weather types

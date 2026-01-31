@@ -27,17 +27,15 @@ export function TodoList() {
   };
 
   return (
-    <div className="glass-dark w-72 rounded-xl p-4">
-      {/* Header */}
+    <div>
+      {/* Header - count and clear button */}
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-sm font-medium text-white/80">
-          <span>Today's Tasks</span>
-          {totalCount > 0 && (
-            <span className="text-white/50">
-              ({completedCount}/{totalCount})
-            </span>
-          )}
-        </h3>
+        {totalCount > 0 && (
+          <span className="text-xs text-white/50">
+            {completedCount}/{totalCount} completed
+          </span>
+        )}
+        {totalCount === 0 && <span />}
 
         {completedCount > 0 && (
           <button

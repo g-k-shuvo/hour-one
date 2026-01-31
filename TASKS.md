@@ -1,6 +1,6 @@
 # Hour One - Feature Task Tracker
 
-> Last Updated: 2026-01-29
+> Last Updated: 2026-01-30
 
 ## Overview
 
@@ -72,7 +72,7 @@ This document tracks the implementation progress of all features for the Hour On
 
 | # | Feature | Status | Files | Notes |
 |---|---------|--------|-------|-------|
-| 4.5 | Pomodoro Timer | ⏳ | - | 25/5 work/break cycles |
+| 4.5 | Focus Mode & Pomodoro Timer | ✅ | `FocusModeOverlay.tsx`, `focusSessionStore.ts` | Full-screen focus mode with zoom transitions, Pomodoro/Count Up timers, session tracking |
 | 4.6 | Advanced To-Do Lists | ⏳ | - | Multiple lists, priorities, due dates |
 | 4.7 | Autofocus Mode | ⏳ | - | Sequential task focus |
 | 4.8 | Habit Tracker | ⏳ | - | Daily habits, streaks |
@@ -141,11 +141,11 @@ This document tracks the implementation progress of all features for the Hour On
 | Phase 1: Foundation | 6 | 6 | 0 | 0 |
 | Phase 2: Free Features | 11 | 11 | 0 | 0 |
 | Phase 3: Pro Infrastructure | 5 | 0 | 0 | 5 |
-| Phase 4: Pro Features | 21 | 0 | 0 | 21 |
+| Phase 4: Pro Features | 21 | 1 | 0 | 20 |
 | Phase 5: Polish & Launch | 10 | 0 | 0 | 10 |
-| **Total** | **53** | **17** | **0** | **36** |
+| **Total** | **53** | **18** | **0** | **35** |
 
-**Overall Progress: 32% Complete (17/53 features)**
+**Overall Progress: 34% Complete (18/53 features)**
 
 ---
 

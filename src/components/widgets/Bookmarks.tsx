@@ -1,12 +1,15 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Bookmark, RefreshCw, ExternalLink, Folder, ChevronDown, MoreHorizontal, Type, Image } from 'lucide-react';
 import { useBookmarksStore } from '@/stores/bookmarksStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useDropdownTheme } from '@/hooks/useTheme';
+import { useClickOutside } from '@/hooks/useClickOutside';
 import type { Bookmark as BookmarkType } from '@/services/bookmarksService';
 
 // Nested folder item component (for folders inside dropdowns)
 function NestedFolder({ bookmark, onClose }: { bookmark: BookmarkType; onClose: () => void }) {
+  const { dropdown, menuItem } = useDropdownTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -44,20 +47,20 @@ function NestedFolder({ bookmark, onClose }: { bookmark: BookmarkType; onClose: 
       <button
         ref={buttonRef}
         onClick={handleToggle}
-        className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors ${isOpen ? 'bg-white/10' : ''}`}
+        className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm transition-colors ${menuItem} ${isOpen ? 'bg-white/10 dark:bg-white/10' : ''}`}
       >
         <Folder size={14} className="text-amber-400/70 flex-shrink-0" />
         <span className="truncate flex-1 text-left">{bookmark.title}</span>
         <ChevronDown
           size={12}
-          className={`text-white/40 transition-transform flex-shrink-0 -rotate-90`}
+          className="opacity-40 transition-transform flex-shrink-0 -rotate-90"
         />
       </button>
 
       {/* Nested dropdown - rendered via portal to escape parent stacking context */}
       {isOpen && bookmark.children && bookmark.children.length > 0 && createPortal(
         <div
-          className="fixed z-[100] min-w-44 max-w-60 max-h-72 overflow-y-auto rounded-lg bg-neutral-900 border border-white/10 py-1.5 shadow-xl"
+          className={`fixed z-[100] min-w-44 max-w-60 max-h-72 overflow-y-auto rounded-lg ${dropdown} py-1.5 shadow-xl`}
           style={{
             top: position.top,
             left: position.left,
@@ -72,7 +75,7 @@ function NestedFolder({ bookmark, onClose }: { bookmark: BookmarkType; onClose: 
                 href={child.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-3 py-1.5 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+                className={`flex items-center gap-2 px-3 py-1.5 text-sm transition-colors ${menuItem}`}
                 onClick={onClose}
               >
                 {child.favicon ? (
@@ -85,7 +88,7 @@ function NestedFolder({ bookmark, onClose }: { bookmark: BookmarkType; onClose: 
                     }}
                   />
                 ) : (
-                  <ExternalLink size={14} className="text-white/40 flex-shrink-0" />
+                  <ExternalLink size={14} className="opacity-40 flex-shrink-0" />
                 )}
                 <span className="truncate">{child.title}</span>
               </a>
@@ -100,12 +103,15 @@ function NestedFolder({ bookmark, onClose }: { bookmark: BookmarkType; onClose: 
 
 // Top-level folder component (shows in bookmark bar)
 function BookmarkFolder({ bookmark, iconOnly }: { bookmark: BookmarkType; iconOnly: boolean }) {
+  const { dropdown, menuItem } = useDropdownTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleClose = () => setIsOpen(false);
+  const handleClose = useCallback(() => setIsOpen(false), []);
+
+  useClickOutside(containerRef, handleClose, isOpen);
 
   const handleToggle = () => {
     if (!isOpen && buttonRef.current) {
@@ -122,7 +128,7 @@ function BookmarkFolder({ bookmark, iconOnly }: { bookmark: BookmarkType; iconOn
   };
 
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <button
         ref={buttonRef}
         onClick={handleToggle}
@@ -136,49 +142,45 @@ function BookmarkFolder({ bookmark, iconOnly }: { bookmark: BookmarkType; iconOn
 
       {/* Dropdown */}
       {isOpen && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={handleClose} />
-          <div
-            ref={dropdownRef}
-            className={`absolute left-0 z-50 min-w-44 max-w-64 max-h-80 overflow-y-auto rounded-lg bg-neutral-900 border border-white/10 py-1.5 shadow-xl ${
-              openUpward ? 'bottom-full mb-1' : 'top-full mt-1'
-            }`}
-            style={{ animation: openUpward ? 'fadeInUp 150ms ease-out' : 'fadeIn 150ms ease-out' }}
-          >
-            {bookmark.children && bookmark.children.length > 0 ? (
-              bookmark.children.slice(0, 15).map((child) =>
-                child.isFolder ? (
-                  <NestedFolder key={child.id} bookmark={child} onClose={handleClose} />
-                ) : (
-                  <a
-                    key={child.id}
-                    href={child.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
-                    onClick={handleClose}
-                  >
-                    {child.favicon ? (
-                      <img
-                        src={child.favicon}
-                        alt=""
-                        className="h-4 w-4 rounded flex-shrink-0"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <ExternalLink size={14} className="text-white/40 flex-shrink-0" />
-                    )}
-                    <span className="truncate">{child.title}</span>
-                  </a>
-                )
+        <div
+          className={`absolute left-0 z-50 min-w-44 max-w-64 max-h-80 overflow-y-auto rounded-lg ${dropdown} py-1.5 shadow-xl ${
+            openUpward ? 'bottom-full mb-1' : 'top-full mt-1'
+          }`}
+          style={{ animation: openUpward ? 'fadeInUp 150ms ease-out' : 'fadeIn 150ms ease-out' }}
+        >
+          {bookmark.children && bookmark.children.length > 0 ? (
+            bookmark.children.slice(0, 15).map((child) =>
+              child.isFolder ? (
+                <NestedFolder key={child.id} bookmark={child} onClose={handleClose} />
+              ) : (
+                <a
+                  key={child.id}
+                  href={child.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center gap-2 px-3 py-1.5 text-sm transition-colors ${menuItem}`}
+                  onClick={handleClose}
+                >
+                  {child.favicon ? (
+                    <img
+                      src={child.favicon}
+                      alt=""
+                      className="h-4 w-4 rounded flex-shrink-0"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <ExternalLink size={14} className="opacity-40 flex-shrink-0" />
+                  )}
+                  <span className="truncate">{child.title}</span>
+                </a>
               )
-            ) : (
-              <div className="px-3 py-2 text-xs text-white/40">Empty folder</div>
-            )}
-          </div>
-        </>
+            )
+          ) : (
+            <div className="px-3 py-2 text-xs opacity-40">Empty folder</div>
+          )}
+        </div>
       )}
     </div>
   );
@@ -196,11 +198,17 @@ export function Bookmarks() {
   } = useBookmarksStore();
 
   const { bookmarkDisplayMode, setBookmarkDisplayMode } = useSettingsStore();
+  const { dropdown, menuItem, menuItemActive, sectionLabel } = useDropdownTheme();
   const [showConfig, setShowConfig] = useState(false);
   const [configPosition, setConfigPosition] = useState({ top: 0, left: 0 });
   const configButtonRef = useRef<HTMLButtonElement>(null);
+  const configPopupRef = useRef<HTMLDivElement>(null);
 
   const iconOnly = bookmarkDisplayMode === 'icon';
+
+  const handleCloseConfig = useCallback(() => setShowConfig(false), []);
+
+  useClickOutside([configButtonRef, configPopupRef], handleCloseConfig, showConfig);
 
   useEffect(() => {
     loadBookmarks();
@@ -254,7 +262,7 @@ export function Bookmarks() {
 
   return (
     <>
-      <div className="group flex items-center gap-2">
+      <div className="group relative">
         {/* Bookmarks bar */}
         <div className="flex items-center gap-1 rounded-full bg-black/20 px-2 py-1.5 backdrop-blur-sm">
           {bookmarks.slice(0, iconOnly ? 12 : 8).map((bookmark) =>
@@ -297,14 +305,14 @@ export function Bookmarks() {
           </button>
         </div>
 
-        {/* Config button - outside on right, visible on hover */}
+        {/* Config button - absolute positioned on right */}
         <button
           ref={configButtonRef}
           onClick={handleConfigToggle}
-          className={`rounded-full p-1.5 transition-all ${
+          className={`absolute -right-8 top-1/2 -translate-y-1/2 rounded-full p-1.5 transition-all hover:bg-white/10 ${
             showConfig
               ? 'opacity-100 bg-white/20 text-white'
-              : 'opacity-0 group-hover:opacity-100 text-white/40 hover:text-white/60 hover:bg-white/10'
+              : 'opacity-0 group-hover:opacity-100 text-white/40 hover:text-white/60'
           }`}
           aria-label="Bookmark settings"
           title="Bookmark display settings"
@@ -315,41 +323,39 @@ export function Bookmarks() {
 
       {/* Config popup */}
       {showConfig && createPortal(
-        <>
-          <div className="fixed inset-0 z-[90]" onClick={() => setShowConfig(false)} />
-          <div
-            className="fixed z-[100] w-44 rounded-lg bg-neutral-900 border border-white/10 py-2 shadow-xl"
-            style={{ top: configPosition.top, left: configPosition.left }}
+        <div
+          ref={configPopupRef}
+          className={`fixed z-[100] w-44 rounded-lg ${dropdown} py-2 shadow-xl`}
+          style={{ top: configPosition.top, left: configPosition.left }}
+        >
+          <p className={`px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider ${sectionLabel}`}>
+            Display
+          </p>
+          <button
+            onClick={() => {
+              setBookmarkDisplayMode('icon');
+              setShowConfig(false);
+            }}
+            className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm transition-colors ${
+              iconOnly ? menuItemActive : menuItem
+            }`}
           >
-            <p className="px-3 pb-1.5 text-[10px] font-semibold text-white/40 uppercase tracking-wider">
-              Display
-            </p>
-            <button
-              onClick={() => {
-                setBookmarkDisplayMode('icon');
-                setShowConfig(false);
-              }}
-              className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm transition-colors ${
-                iconOnly ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5'
-              }`}
-            >
-              <Image size={14} />
-              <span>Icon only</span>
-            </button>
-            <button
-              onClick={() => {
-                setBookmarkDisplayMode('icon-text');
-                setShowConfig(false);
-              }}
-              className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm transition-colors ${
-                !iconOnly ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5'
-              }`}
-            >
-              <Type size={14} />
-              <span>Icon with text</span>
-            </button>
-          </div>
-        </>,
+            <Image size={14} />
+            <span>Icon only</span>
+          </button>
+          <button
+            onClick={() => {
+              setBookmarkDisplayMode('icon-text');
+              setShowConfig(false);
+            }}
+            className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm transition-colors ${
+              !iconOnly ? menuItemActive : menuItem
+            }`}
+          >
+            <Type size={14} />
+            <span>Icon with text</span>
+          </button>
+        </div>,
         document.body
       )}
 

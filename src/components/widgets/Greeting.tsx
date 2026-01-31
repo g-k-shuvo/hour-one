@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MoreHorizontal, Heart, Pin, SkipForward, EyeOff, Settings, Sparkles, Edit3 } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useMantraStore } from '@/stores/mantraStore';
+import { Dropdown, DropdownItem, DropdownDivider } from '@/components/ui/Dropdown';
+import { useClickOutside } from '@/hooks/useClickOutside';
 
 export function Greeting() {
   const { userName } = useSettingsStore();
@@ -21,6 +23,10 @@ export function Greeting() {
 
   const [greeting, setGreeting] = useState(getGreeting());
   const [showMenu, setShowMenu] = useState(false);
+  const menuContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleCloseMenu = useCallback(() => setShowMenu(false), []);
+  useClickOutside(menuContainerRef, handleCloseMenu, showMenu);
 
   useEffect(() => {
     // Update greeting every minute in case hour changes
@@ -94,23 +100,25 @@ export function Greeting() {
   const isPinned = currentMantra ? pinnedMantraId === currentMantra.id : false;
 
   return (
-    <div className="relative group flex items-center justify-center gap-2">
-      {/* Content: Mantra text OR Greeting text */}
-      {showMantra && currentMantra ? (
-        <p className="text-3xl font-light text-white/90 text-shadow max-w-2xl text-center">
-          {currentMantra.text}
-        </p>
-      ) : (
-        <p className="text-3xl font-light text-white/90 text-shadow">
-          {greeting}, {userName || 'there'}
-        </p>
-      )}
+    <div className="relative group mt-4">
+      {/* Content: Mantra text OR Greeting text - centered */}
+      <div className="text-center">
+        {showMantra && currentMantra ? (
+          <p className="text-3xl font-light text-white/90 text-shadow max-w-2xl mx-auto">
+            {currentMantra.text}
+          </p>
+        ) : (
+          <p className="text-3xl font-light text-white/90 text-shadow">
+            {greeting}, {userName || 'there'}
+          </p>
+        )}
+      </div>
 
-      {/* Triple-dot button - visible on hover */}
-      <div className="relative">
+      {/* Triple-dot button - absolute positioned on right */}
+      <div ref={menuContainerRef} className="absolute -right-8 top-1/2 -translate-y-1/2">
         <button
           onClick={() => setShowMenu(!showMenu)}
-          className={`rounded-full p-0.5 transition-all hover:bg-white/10 hover:text-white/60 ${
+          className={`rounded-full p-1 transition-all hover:bg-white/10 hover:text-white/60 ${
             showMenu ? 'opacity-100 text-white/60' : 'opacity-0 group-hover:opacity-100 text-white/40'
           }`}
           aria-label="Greeting options"
@@ -120,92 +128,52 @@ export function Greeting() {
 
         {/* Dropdown menu */}
         {showMenu && (
-          <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setShowMenu(false)}
-            />
-            <div
-              className="absolute left-0 top-full mt-1 z-50 w-44 rounded-lg bg-white py-1.5 shadow-xl"
-              style={{ animation: 'fadeIn 150ms ease-out' }}
-            >
-              {showMantra ? (
-                // Mantra mode menu
-                <>
-                  <button
-                    onClick={handleFavorite}
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <Heart size={14} className={isFavorite ? 'fill-red-500 text-red-500' : ''} />
-                    <span>{isFavorite ? 'Unfavorite' : 'Favorite'}</span>
-                  </button>
-                  <button
-                    onClick={handlePin}
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <Pin size={14} className={isPinned ? 'fill-blue-500 text-blue-500' : ''} />
-                    <span>{isPinned ? 'Unpin' : 'Pin'}</span>
-                  </button>
-                  <button
-                    onClick={handleSkip}
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <SkipForward size={14} />
-                    <span>Skip mantra</span>
-                  </button>
-                  <button
-                    onClick={handleHide}
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <EyeOff size={14} />
-                    <span>Don't show again</span>
-                  </button>
-                  <div className="my-1.5 border-t border-gray-100" />
-                  <button
-                    onClick={handleShowGreeting}
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <Edit3 size={14} />
-                    <span>Show greeting</span>
-                  </button>
-                  <button
-                    onClick={handleMantraSettings}
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <Settings size={14} />
-                    <span>Mantra settings</span>
-                  </button>
-                </>
-              ) : (
-                // Greeting mode menu
-                <>
-                  <button
-                    onClick={handleShowMantra}
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <Sparkles size={14} />
-                    <span>Show today's mantra</span>
-                  </button>
-                  <button
-                    onClick={handleEditName}
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <Edit3 size={14} />
-                    <span>Edit name</span>
-                  </button>
-                </>
-              )}
-            </div>
-          </>
+          <Dropdown position="left">
+            {showMantra ? (
+              // Mantra mode menu
+              <>
+                <DropdownItem onClick={handleFavorite}>
+                  <Heart size={14} className={isFavorite ? 'fill-red-500 text-red-500' : ''} />
+                  <span>{isFavorite ? 'Unfavorite' : 'Favorite'}</span>
+                </DropdownItem>
+                <DropdownItem onClick={handlePin}>
+                  <Pin size={14} className={isPinned ? 'fill-blue-500 text-blue-500' : ''} />
+                  <span>{isPinned ? 'Unpin' : 'Pin'}</span>
+                </DropdownItem>
+                <DropdownItem onClick={handleSkip}>
+                  <SkipForward size={14} />
+                  <span>Skip mantra</span>
+                </DropdownItem>
+                <DropdownItem onClick={handleHide}>
+                  <EyeOff size={14} />
+                  <span>Don't show again</span>
+                </DropdownItem>
+                <DropdownDivider />
+                <DropdownItem onClick={handleShowGreeting}>
+                  <Edit3 size={14} />
+                  <span>Show greeting</span>
+                </DropdownItem>
+                <DropdownItem onClick={handleMantraSettings}>
+                  <Settings size={14} />
+                  <span>Mantra settings</span>
+                </DropdownItem>
+              </>
+            ) : (
+              // Greeting mode menu
+              <>
+                <DropdownItem onClick={handleShowMantra}>
+                  <Sparkles size={14} />
+                  <span>Show today's mantra</span>
+                </DropdownItem>
+                <DropdownItem onClick={handleEditName}>
+                  <Edit3 size={14} />
+                  <span>Edit name</span>
+                </DropdownItem>
+              </>
+            )}
+          </Dropdown>
         )}
       </div>
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }

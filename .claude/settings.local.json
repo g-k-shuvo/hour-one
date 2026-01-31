@@ -8,7 +8,11 @@
       "Bash(git init:*)",
       "Bash(git add:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: Hour One extension with free features\n\nFeatures implemented:\n- Clock widget with 12/24h format\n- Greeting widget with mantra mode\n- Daily focus with completion\n- Quote of the day\n- Weather with detailed expandable panel\n- Search bar with multiple providers\n- Chrome bookmarks integration\n- Quick links management\n- Todo list\n- Background images from Unsplash\n- Settings sidebar\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(git commit:*)",
+      "Bash(git merge:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git push)"
     ]
   }
 }

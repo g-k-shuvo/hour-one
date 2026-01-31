@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { X, Play, Pause, RotateCcw, MoreHorizontal, Check, Plus, Clock, Bell, Eye, Volume2, Timer, ArrowUpDown } from 'lucide-react';
+import { X, Play, Pause, RotateCcw, MoreHorizontal, Check, Plus, Clock, Bell, Eye, Volume2, Timer, ArrowUpDown, Edit3 } from 'lucide-react';
 import {
   useFocusSessionStore,
   getRandomFocusQuote,
   getCelebrationMessage,
 } from '@/stores/focusSessionStore';
 import { useFocusStore } from '@/stores/focusStore';
+import { useDropdownTheme } from '@/hooks/useTheme';
+import { useClickOutside } from '@/hooks/useClickOutside';
 
 // Format seconds to MM:SS or HH:MM:SS
 function formatTime(seconds: number, hideSeconds: boolean = false): string {
@@ -255,6 +257,7 @@ function PomodoroSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => vo
     completeCurrentTimer,
     isTimerRunning,
   } = useFocusSessionStore();
+  const { dropdown, menuItem, divider } = useDropdownTheme();
 
   const [focusTime, setFocusTime] = useState(settings.focusDuration.toString());
   const [breakTime, setBreakTime] = useState(settings.breakDuration.toString());
@@ -276,15 +279,13 @@ function PomodoroSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => vo
   };
 
   return (
-    <>
-      <div className="fixed inset-0 z-50" onClick={onClose} />
-      <div
-        className="absolute right-0 top-full mt-2 z-50 w-64 rounded-xl bg-gray-900/95 backdrop-blur-sm border border-white/10 shadow-2xl overflow-hidden"
-        style={{ animation: 'fadeIn 150ms ease-out' }}
-      >
+    <div
+      className={`absolute right-0 top-full mt-2 z-50 w-64 rounded-xl ${dropdown} backdrop-blur-sm shadow-2xl overflow-hidden`}
+      style={{ animation: 'fadeIn 150ms ease-out' }}
+    >
         {/* Header with mode toggle */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-          <div className="flex items-center gap-2 text-white/90">
+        <div className={`flex items-center justify-between px-4 py-3 border-b ${divider}`}>
+          <div className="flex items-center gap-2">
             <Timer size={16} />
             <span className="font-medium">Pomodoro</span>
           </div>
@@ -293,8 +294,8 @@ function PomodoroSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => vo
             disabled={isTimerRunning}
             className={`p-1.5 rounded-md transition-colors ${
               isTimerRunning
-                ? 'text-white/20 cursor-not-allowed'
-                : 'text-white/50 hover:text-white/80 hover:bg-white/10'
+                ? 'opacity-20 cursor-not-allowed'
+                : 'opacity-50 hover:opacity-80 hover:bg-black/10 dark:hover:bg-white/10'
             }`}
             title="Switch to Count Up"
           >
@@ -303,24 +304,24 @@ function PomodoroSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => vo
         </div>
 
         {/* Actions */}
-        <div className="p-2 border-b border-white/10">
+        <div className={`p-2 border-b ${divider}`}>
           <button
             onClick={() => { completeCurrentTimer(); onClose(); }}
-            className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
+            className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm rounded-lg transition-colors ${menuItem}`}
           >
             <Check size={16} />
             <span>Complete timer</span>
           </button>
           <button
             onClick={() => { resetTimer(); onClose(); }}
-            className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
+            className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm rounded-lg transition-colors ${menuItem}`}
           >
             <RotateCcw size={16} />
             <span>Restart timer</span>
           </button>
           <button
             onClick={() => { addMinutes(10); onClose(); }}
-            className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
+            className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm rounded-lg transition-colors ${menuItem}`}
           >
             <Plus size={16} />
             <span>Add 10 minutes</span>
@@ -328,35 +329,35 @@ function PomodoroSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => vo
         </div>
 
         {/* Duration inputs */}
-        <div className="p-3 border-b border-white/10 space-y-3">
+        <div className={`p-3 border-b ${divider} space-y-3`}>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-white/70">Focus</span>
+            <span className="text-sm opacity-70">Focus</span>
             <div className="flex items-center gap-1">
               <input
                 type="number"
                 value={focusTime}
                 onChange={(e) => handleFocusTimeChange(e.target.value)}
                 disabled={isTimerRunning}
-                className="w-12 bg-transparent border-none text-sm text-white/70 text-right disabled:opacity-50 outline-none"
+                className="w-12 bg-transparent border-none text-sm opacity-70 text-right disabled:opacity-50 outline-none"
                 min="1"
                 max="120"
               />
-              <span className="text-sm text-white/40">min</span>
+              <span className="text-sm opacity-40">min</span>
             </div>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-white/70">Break</span>
+            <span className="text-sm opacity-70">Break</span>
             <div className="flex items-center gap-1">
               <input
                 type="number"
                 value={breakTime}
                 onChange={(e) => handleBreakTimeChange(e.target.value)}
                 disabled={isTimerRunning}
-                className="w-12 bg-transparent border-none text-sm text-white/70 text-right disabled:opacity-50 outline-none"
+                className="w-12 bg-transparent border-none text-sm opacity-70 text-right disabled:opacity-50 outline-none"
                 min="1"
                 max="60"
               />
-              <span className="text-sm text-white/40">min</span>
+              <span className="text-sm opacity-40">min</span>
             </div>
           </div>
         </div>
@@ -364,28 +365,28 @@ function PomodoroSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => vo
         {/* Toggle settings */}
         <div className="p-3 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-white/70">Timer sound effects</span>
+            <span className="text-sm opacity-70">Timer sound effects</span>
             <ToggleSwitch
               checked={settings.soundEnabled}
               onChange={(checked) => updateSettings({ soundEnabled: checked })}
             />
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-white/70">Auto-start timers</span>
+            <span className="text-sm opacity-70">Auto-start timers</span>
             <ToggleSwitch
               checked={settings.autoStartTimers}
               onChange={(checked) => updateSettings({ autoStartTimers: checked })}
             />
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-white/70">Hide seconds</span>
+            <span className="text-sm opacity-70">Hide seconds</span>
             <ToggleSwitch
               checked={settings.hideSeconds}
               onChange={(checked) => updateSettings({ hideSeconds: checked })}
             />
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-white/70">Browser notifications</span>
+            <span className="text-sm opacity-70">Browser notifications</span>
             <ToggleSwitch
               checked={settings.notificationsEnabled}
               onChange={(checked) => updateSettings({ notificationsEnabled: checked })}
@@ -393,24 +394,22 @@ function PomodoroSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => vo
           </div>
         </div>
       </div>
-    </>
   );
 }
 
 // Timer settings dropdown for Count Up
 function CountUpSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => void; onSwitchMode: () => void }) {
   const { settings, updateSettings, resetTimer, isTimerRunning } = useFocusSessionStore();
+  const { dropdown, menuItem, divider } = useDropdownTheme();
 
   return (
-    <>
-      <div className="fixed inset-0 z-50" onClick={onClose} />
-      <div
-        className="absolute right-0 top-full mt-2 z-50 w-56 rounded-xl bg-gray-900/95 backdrop-blur-sm border border-white/10 shadow-2xl overflow-hidden"
+    <div
+        className={`absolute right-0 top-full mt-2 z-50 w-56 rounded-xl ${dropdown} backdrop-blur-sm shadow-2xl overflow-hidden`}
         style={{ animation: 'fadeIn 150ms ease-out' }}
       >
         {/* Header with mode toggle */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-          <div className="flex items-center gap-2 text-white/90">
+        <div className={`flex items-center justify-between px-4 py-3 border-b ${divider}`}>
+          <div className="flex items-center gap-2">
             <Clock size={16} />
             <span className="font-medium">Count Up</span>
           </div>
@@ -419,8 +418,8 @@ function CountUpSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => voi
             disabled={isTimerRunning}
             className={`p-1.5 rounded-md transition-colors ${
               isTimerRunning
-                ? 'text-white/20 cursor-not-allowed'
-                : 'text-white/50 hover:text-white/80 hover:bg-white/10'
+                ? 'opacity-20 cursor-not-allowed'
+                : 'opacity-50 hover:opacity-80 hover:bg-black/10 dark:hover:bg-white/10'
             }`}
             title="Switch to Pomodoro"
           >
@@ -429,10 +428,10 @@ function CountUpSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => voi
         </div>
 
         {/* Actions */}
-        <div className="p-2 border-b border-white/10">
+        <div className={`p-2 border-b ${divider}`}>
           <button
             onClick={() => { resetTimer(); onClose(); }}
-            className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors"
+            className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm rounded-lg transition-colors ${menuItem}`}
           >
             <RotateCcw size={16} />
             <span>Restart timer</span>
@@ -442,7 +441,7 @@ function CountUpSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => voi
         {/* Toggle settings */}
         <div className="p-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-white/70">Hide seconds</span>
+            <span className="text-sm opacity-70">Hide seconds</span>
             <ToggleSwitch
               checked={settings.hideSeconds}
               onChange={(checked) => updateSettings({ hideSeconds: checked })}
@@ -450,17 +449,21 @@ function CountUpSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => voi
           </div>
         </div>
       </div>
-    </>
   );
 }
 
 // Focus input component inside the timer (matches normal mode functionality)
 function FocusInput() {
   const { focus, isCompleted, setFocus, completeFocus, clearFocus, toggleComplete } = useFocusStore();
+  const { dropdown, menuItem } = useDropdownTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(focus);
   const [showMenu, setShowMenu] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const menuContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleCloseMenu = useCallback(() => setShowMenu(false), []);
+  useClickOutside(menuContainerRef, handleCloseMenu, showMenu);
 
   useEffect(() => {
     setInputValue(focus);
@@ -542,34 +545,37 @@ function FocusInput() {
 
   // Focus is set - show with checkbox and menu
   return (
-    <div className="flex items-center gap-2 group relative">
-      {/* Checkbox - toggleable */}
-      <button
-        onClick={handleToggleComplete}
-        className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
-          isCompleted
-            ? 'border-green-400 bg-green-400/20 text-green-400'
-            : 'border-white/40 hover:border-white/60 text-transparent hover:text-white/40'
-        }`}
-      >
-        <Check size={12} strokeWidth={3} />
-      </button>
+    <div className="relative group">
+      {/* Centered content */}
+      <div className="flex items-center justify-center gap-2">
+        {/* Checkbox - toggleable */}
+        <button
+          onClick={handleToggleComplete}
+          className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+            isCompleted
+              ? 'border-green-400 bg-green-400/20 text-green-400'
+              : 'border-white/40 hover:border-white/60 text-transparent hover:text-white/40'
+          }`}
+        >
+          <Check size={12} strokeWidth={3} />
+        </button>
 
-      {/* Focus text */}
-      <span
-        className={`text-lg transition-all max-w-[180px] truncate ${
-          isCompleted ? 'text-white/40 line-through' : 'text-white/90'
-        }`}
-        title={focus}
-      >
-        {focus}
-      </span>
+        {/* Focus text */}
+        <span
+          className={`text-lg transition-all max-w-[180px] truncate ${
+            isCompleted ? 'text-white/40 line-through' : 'text-white/90'
+          }`}
+          title={focus}
+        >
+          {focus}
+        </span>
+      </div>
 
-      {/* Three dots menu */}
-      <div className="relative">
+      {/* Three dots menu - absolute positioned on right */}
+      <div ref={menuContainerRef} className="absolute -right-8 top-1/2 -translate-y-1/2">
         <button
           onClick={() => setShowMenu(!showMenu)}
-          className={`p-0.5 rounded-full transition-all hover:bg-white/10 ${
+          className={`p-1 rounded-full transition-all hover:bg-white/10 ${
             showMenu ? 'opacity-100 text-white/60' : 'opacity-0 group-hover:opacity-100 text-white/40'
           }`}
         >
@@ -578,29 +584,25 @@ function FocusInput() {
 
         {/* Dropdown menu */}
         {showMenu && (
-          <>
-            <div
-              className="fixed inset-0 z-50"
-              onClick={() => setShowMenu(false)}
-            />
-            <div
-              className="absolute left-0 top-full mt-1 z-50 w-28 rounded-lg bg-gray-900/95 backdrop-blur-sm border border-white/10 py-1 shadow-xl"
-              style={{ animation: 'fadeIn 150ms ease-out' }}
+          <div
+            className={`absolute right-0 top-full mt-1 z-50 w-28 rounded-lg ${dropdown} backdrop-blur-sm py-1 shadow-xl`}
+            style={{ animation: 'fadeIn 150ms ease-out' }}
+          >
+            <button
+              onClick={handleEdit}
+              className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors ${menuItem}`}
             >
-              <button
-                onClick={handleEdit}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-white/80 hover:bg-white/10 transition-colors"
-              >
-                <span>Edit</span>
-              </button>
-              <button
-                onClick={handleClear}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-white/80 hover:bg-white/10 transition-colors"
-              >
-                <span>Clear</span>
-              </button>
-            </div>
-          </>
+              <Edit3 size={12} />
+              <span>Edit</span>
+            </button>
+            <button
+              onClick={handleClear}
+              className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors ${menuItem}`}
+            >
+              <X size={12} />
+              <span>Clear</span>
+            </button>
+          </div>
         )}
       </div>
     </div>
@@ -627,6 +629,10 @@ function FocusModeUI() {
   } = useFocusSessionStore();
 
   const [showSettings, setShowSettings] = useState(false);
+  const settingsContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleCloseSettings = useCallback(() => setShowSettings(false), []);
+  useClickOutside(settingsContainerRef, handleCloseSettings, showSettings);
 
   // Calculate progress for arc indicator
   const progress = timerMode === 'pomodoro' && initialTimerSeconds > 0
@@ -719,59 +725,85 @@ function FocusModeUI() {
         {/* Timer display with arc */}
         <div className="relative animate-fadeIn" style={{ animationDelay: '0.1s' }}>
           {timerMode === 'pomodoro' ? (
-            <ArcProgress progress={progress} size={340}>
-              <div className="flex flex-col items-center justify-center">
-                {/* FOCUS / BREAK tabs inside circle - clickable */}
-                <div className="flex items-center gap-6 mb-3">
-                  <button
-                    onClick={() => !isTimerRunning && setPomodoroPhase('focus')}
-                    disabled={isTimerRunning}
-                    className={`text-sm font-medium tracking-wider transition-colors ${
-                      pomodoroPhase === 'focus' ? 'text-white' : 'text-white/40 hover:text-white/60'
-                    } ${isTimerRunning ? 'cursor-default' : 'cursor-pointer'}`}
-                  >
-                    FOCUS
-                  </button>
-                  <button
-                    onClick={() => !isTimerRunning && setPomodoroPhase('break')}
-                    disabled={isTimerRunning}
-                    className={`text-sm font-medium tracking-wider transition-colors ${
-                      pomodoroPhase === 'break' ? 'text-white' : 'text-white/40 hover:text-white/60'
-                    } ${isTimerRunning ? 'cursor-default' : 'cursor-pointer'}`}
-                  >
-                    BREAK
-                  </button>
-                </div>
+            <div className="relative group">
+              <ArcProgress progress={progress} size={340}>
+                <div className="flex flex-col items-center justify-center">
+                  {/* FOCUS / BREAK tabs inside circle - clickable */}
+                  <div className="flex items-center gap-6 mb-3">
+                    <button
+                      onClick={() => !isTimerRunning && setPomodoroPhase('focus')}
+                      disabled={isTimerRunning}
+                      className={`text-sm font-medium tracking-wider transition-colors ${
+                        pomodoroPhase === 'focus' ? 'text-white' : 'text-white/40 hover:text-white/60'
+                      } ${isTimerRunning ? 'cursor-default' : 'cursor-pointer'}`}
+                    >
+                      FOCUS
+                    </button>
+                    <button
+                      onClick={() => !isTimerRunning && setPomodoroPhase('break')}
+                      disabled={isTimerRunning}
+                      className={`text-sm font-medium tracking-wider transition-colors ${
+                        pomodoroPhase === 'break' ? 'text-white' : 'text-white/40 hover:text-white/60'
+                      } ${isTimerRunning ? 'cursor-default' : 'cursor-pointer'}`}
+                    >
+                      BREAK
+                    </button>
+                  </div>
 
-                {/* Time with settings button */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="text-6xl font-extralight text-white tracking-tight">
+                  {/* Time - centered */}
+                  <div className="text-6xl font-extralight text-white tracking-tight mb-3">
                     {formatTimeDisplay(timerSeconds, settings.hideSeconds)}
                   </div>
-                  {/* Settings button next to timer */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowSettings(!showSettings)}
-                      className={`p-1.5 rounded-md transition-colors ${
-                        showSettings
-                          ? 'bg-white/20 text-white'
-                          : 'text-white/40 hover:text-white/70 hover:bg-white/10'
-                      }`}
-                    >
-                      <MoreHorizontal size={18} />
-                    </button>
 
-                    {/* Settings dropdown */}
-                    {showSettings && (
-                      <PomodoroSettingsDropdown onClose={() => setShowSettings(false)} onSwitchMode={handleSwitchMode} />
-                    )}
-                  </div>
+                  {/* Focus input inside the arc */}
+                  <FocusInput />
+
+                  {/* Play/Pause button inside circle */}
+                  <button
+                    onClick={isTimerRunning ? pauseTimer : startTimer}
+                    className={`mt-4 flex items-center justify-center w-12 h-12 rounded-full transition-all ${
+                      isTimerRunning
+                        ? 'bg-white/10 hover:bg-white/20 text-white'
+                        : 'bg-white/20 hover:bg-white/30 text-white'
+                    }`}
+                  >
+                    {isTimerRunning ? <Pause size={20} /> : <Play size={20} className="ml-0.5" />}
+                  </button>
+                </div>
+              </ArcProgress>
+
+              {/* Settings button - absolute positioned on right */}
+              <div ref={settingsContainerRef} className="absolute -right-10 top-1/2 -translate-y-1/2">
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className={`p-1.5 rounded-full transition-all hover:bg-white/10 ${
+                    showSettings
+                      ? 'opacity-100 bg-white/20 text-white'
+                      : 'opacity-0 group-hover:opacity-100 text-white/40 hover:text-white/70'
+                  }`}
+                >
+                  <MoreHorizontal size={18} />
+                </button>
+
+                {/* Settings dropdown */}
+                {showSettings && (
+                  <PomodoroSettingsDropdown onClose={() => setShowSettings(false)} onSwitchMode={handleSwitchMode} />
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Count Up mode - no arc, just centered content */
+            <div className="relative group">
+              <div className="w-[340px] h-[340px] flex flex-col items-center justify-center">
+                {/* Time - centered */}
+                <div className="text-6xl font-extralight text-white tracking-tight mb-3">
+                  {formatTimeDisplay(timerSeconds, settings.hideSeconds)}
                 </div>
 
-                {/* Focus input inside the arc */}
+                {/* Focus input */}
                 <FocusInput />
 
-                {/* Play/Pause button inside circle */}
+                {/* Play/Pause button */}
                 <button
                   onClick={isTimerRunning ? pauseTimer : startTimer}
                   className={`mt-4 flex items-center justify-center w-12 h-12 rounded-full transition-all ${
@@ -783,49 +815,25 @@ function FocusModeUI() {
                   {isTimerRunning ? <Pause size={20} /> : <Play size={20} className="ml-0.5" />}
                 </button>
               </div>
-            </ArcProgress>
-          ) : (
-            /* Count Up mode - no arc, just centered content */
-            <div className="w-[340px] h-[340px] flex flex-col items-center justify-center">
-              {/* Time with settings button */}
-              <div className="flex items-center gap-2 mb-3">
-                <div className="text-6xl font-extralight text-white tracking-tight">
-                  {formatTimeDisplay(timerSeconds, settings.hideSeconds)}
-                </div>
-                {/* Settings button next to timer */}
-                <div className="relative">
-                  <button
-                    onClick={() => setShowSettings(!showSettings)}
-                    className={`p-1.5 rounded-md transition-colors ${
-                      showSettings
-                        ? 'bg-white/20 text-white'
-                        : 'text-white/40 hover:text-white/70 hover:bg-white/10'
-                    }`}
-                  >
-                    <MoreHorizontal size={18} />
-                  </button>
 
-                  {/* Settings dropdown */}
-                  {showSettings && (
-                    <CountUpSettingsDropdown onClose={() => setShowSettings(false)} onSwitchMode={handleSwitchMode} />
-                  )}
-                </div>
+              {/* Settings button - absolute positioned on right */}
+              <div ref={settingsContainerRef} className="absolute -right-10 top-1/2 -translate-y-1/2">
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className={`p-1.5 rounded-full transition-all hover:bg-white/10 ${
+                    showSettings
+                      ? 'opacity-100 bg-white/20 text-white'
+                      : 'opacity-0 group-hover:opacity-100 text-white/40 hover:text-white/70'
+                  }`}
+                >
+                  <MoreHorizontal size={18} />
+                </button>
+
+                {/* Settings dropdown */}
+                {showSettings && (
+                  <CountUpSettingsDropdown onClose={() => setShowSettings(false)} onSwitchMode={handleSwitchMode} />
+                )}
               </div>
-
-              {/* Focus input */}
-              <FocusInput />
-
-              {/* Play/Pause button */}
-              <button
-                onClick={isTimerRunning ? pauseTimer : startTimer}
-                className={`mt-4 flex items-center justify-center w-12 h-12 rounded-full transition-all ${
-                  isTimerRunning
-                    ? 'bg-white/10 hover:bg-white/20 text-white'
-                    : 'bg-white/20 hover:bg-white/30 text-white'
-                }`}
-              >
-                {isTimerRunning ? <Pause size={20} /> : <Play size={20} className="ml-0.5" />}
-              </button>
             </div>
           )}
         </div>
