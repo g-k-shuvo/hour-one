@@ -75,7 +75,7 @@ This document tracks the implementation progress of all features for the Hour On
 | 4.5 | Focus Mode & Pomodoro Timer | ✅ | `FocusModeOverlay.tsx`, `focusSessionStore.ts` | Full-screen focus mode with zoom transitions, Pomodoro/Count Up timers, session tracking |
 | 4.6 | Advanced To-Do Lists | ✅ | `TodoList.tsx`, `todosStore.ts`, `types/index.ts` | Due dates, priorities, tags, subtasks, search |
 | 4.7 | Autofocus Mode | ⏳ | - | Sequential task focus |
-| 4.8 | Habit Tracker | ⏳ | - | Daily habits, streaks |
+| 4.8 | Habit Tracker | ✅ | `HabitTracker.tsx`, `habitStore.ts` | Daily habits, streaks, week view, frequency options |
 | 4.9 | Metrics Dashboard | ⏳ | - | Productivity analytics |
 | 4.10 | Balance Mode | ⏳ | - | Work-life balance tracking |
 
@@ -218,11 +218,10 @@ src/
 
 ## Next Up (Recommended Order)
 
-1. **4.8 Habit Tracker** - Daily habits, streaks
-2. **4.4 Widget Drag & Drop** - Repositionable widgets
-3. **4.7 Autofocus Mode** - Sequential task focus
-4. **4.10 Balance Mode** - Work-life balance tracking
-5. **4.9 Metrics Dashboard** - Productivity analytics
+1. **4.4 Widget Drag & Drop** - Repositionable widgets
+2. **4.7 Autofocus Mode** - Sequential task focus
+3. **4.10 Balance Mode** - Work-life balance tracking
+4. **4.9 Metrics Dashboard** - Productivity analytics
 
 ---
 
