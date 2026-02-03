@@ -125,7 +125,7 @@ This document tracks the implementation progress of all features for the Hour On
 | 5.2 | Performance Optimization | ⏳ | - | Lazy loading, code splitting |
 | 5.3 | Error Handling | ⏳ | - | Graceful degradation |
 | 5.4 | Keyboard Shortcuts | ⏳ | - | Quick actions |
-| 5.5 | Widget Visibility Toggles | ⏳ | - | Show/hide in settings |
+| 5.5 | Widget Visibility Toggles | ✅ | `SettingsSidebar.tsx`, `settingsStore.ts` | Show/hide in settings |
 | 5.6 | Cross-Browser Support | ⏳ | - | Firefox, Edge |
 | 5.7 | Unit Tests | ⏳ | - | Component tests |
 | 5.8 | E2E Tests | ⏳ | - | Playwright tests |
@@ -142,10 +142,10 @@ This document tracks the implementation progress of all features for the Hour On
 | Phase 2: Free Features | 11 | 11 | 0 | 0 |
 | Phase 3: Pro Infrastructure | 5 | 0 | 0 | 5 |
 | Phase 4: Pro Features | 21 | 1 | 0 | 20 |
-| Phase 5: Polish & Launch | 10 | 0 | 0 | 10 |
-| **Total** | **53** | **18** | **0** | **35** |
+| Phase 5: Polish & Launch | 10 | 1 | 0 | 9 |
+| **Total** | **53** | **19** | **0** | **34** |
 
-**Overall Progress: 34% Complete (18/53 features)**
+**Overall Progress: 36% Complete (19/53 features)**
 
 ---
 
@@ -209,12 +209,11 @@ src/
 
 ## Next Up (Recommended Order)
 
-1. **5.5 Widget Visibility Toggles** - Add show/hide toggles in Settings (HIGH PRIORITY)
-2. **5.1 Onboarding Flow** - First-time user name/location setup
-3. **4.3 Custom Themes** - Dark mode, color customization
+1. **5.1 Onboarding Flow** - First-time user name/location setup (HIGH PRIORITY)
+2. **4.3 Custom Themes** - Dark mode, color customization (partial - themeMode exists)
+3. **4.21 Soundscapes** - Ambient sounds for focus
 4. **4.11 Tab Stash** - Save/restore tab sessions (unique browser feature)
 5. **4.6 Advanced To-Do Lists** - Multiple lists, priorities, due dates
-6. **4.21 Soundscapes** - Ambient sounds for focus
 
 ---
 
