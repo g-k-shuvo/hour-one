@@ -73,7 +73,7 @@ This document tracks the implementation progress of all features for the Hour On
 | # | Feature | Status | Files | Notes |
 |---|---------|--------|-------|-------|
 | 4.5 | Focus Mode & Pomodoro Timer | ✅ | `FocusModeOverlay.tsx`, `focusSessionStore.ts` | Full-screen focus mode with zoom transitions, Pomodoro/Count Up timers, session tracking |
-| 4.6 | Advanced To-Do Lists | ⏳ | - | Multiple lists, priorities, due dates |
+| 4.6 | Advanced To-Do Lists | ✅ | `TodoList.tsx`, `todosStore.ts`, `types/index.ts` | Due dates, priorities, tags, subtasks, search |
 | 4.7 | Autofocus Mode | ⏳ | - | Sequential task focus |
 | 4.8 | Habit Tracker | ⏳ | - | Daily habits, streaks |
 | 4.9 | Metrics Dashboard | ⏳ | - | Productivity analytics |
@@ -141,11 +141,11 @@ This document tracks the implementation progress of all features for the Hour On
 | Phase 1: Foundation | 6 | 6 | 0 | 0 |
 | Phase 2: Free Features | 11 | 11 | 0 | 0 |
 | Phase 3: Pro Infrastructure | 5 | 0 | 0 | 5 |
-| Phase 4: Pro Features | 21 | 4 | 0 | 17 |
+| Phase 4: Pro Features | 21 | 5 | 0 | 16 |
 | Phase 5: Polish & Launch | 10 | 2 | 0 | 8 |
-| **Total** | **53** | **23** | **0** | **30** |
+| **Total** | **53** | **24** | **0** | **29** |
 
-**Overall Progress: 43% Complete (23/53 features)**
+**Overall Progress: 45% Complete (24/53 features)**
 
 ---
 
@@ -214,11 +214,11 @@ src/
 
 ## Next Up (Recommended Order)
 
-1. **4.6 Advanced To-Do Lists** - Multiple lists, priorities, due dates
-2. **4.12 World Clocks** - Multiple timezone display
-3. **4.13 Countdown Timers** - Event countdowns
+1. **4.12 World Clocks** - Multiple timezone display
+2. **4.13 Countdown Timers** - Event countdowns
+3. **4.8 Habit Tracker** - Daily habits, streaks
 4. **4.4 Widget Drag & Drop** - Repositionable widgets
-5. **4.8 Habit Tracker** - Daily habits, streaks
+5. **4.7 Autofocus Mode** - Sequential task focus
 
 ---
 
