@@ -13,6 +13,7 @@ import { Bookmarks } from '@/components/widgets/Bookmarks';
 import { Background } from '@/components/widgets/Background';
 import { FocusModeOverlay } from '@/components/widgets/FocusModeOverlay';
 import { SettingsSidebar } from '@/components/ui/SettingsSidebar';
+import { Onboarding } from '@/components/ui/Onboarding';
 import { IconButton } from '@/components/ui/IconButton';
 import { PopupPanel } from '@/components/ui/PopupPanel';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -65,6 +66,9 @@ export function Dashboard() {
 
       {/* Settings Sidebar - rendered outside main to work during focus mode */}
       <SettingsSidebar />
+
+      {/* Onboarding Flow - shown only for first-time users */}
+      <Onboarding />
 
       {/* Main Content - hidden during focus mode */}
       <main

@@ -32,6 +32,9 @@ export const ACCENT_COLORS: Record<AccentColor, { name: string; value: string; h
 };
 
 interface SettingsState {
+  // Onboarding
+  onboardingComplete: boolean;
+
   // User preferences
   userName: string;
   timeFormat: '12h' | '24h';
@@ -64,11 +67,15 @@ interface SettingsState {
   toggleWidget: (widget: keyof WidgetVisibility) => void;
   setWidgetVisibility: (widget: keyof WidgetVisibility, visible: boolean) => void;
   setTopTaskInCenter: (enabled: boolean) => void;
+  completeOnboarding: () => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
+      // Onboarding
+      onboardingComplete: false,
+
       // Default values
       userName: '',
       timeFormat: '12h',
@@ -125,6 +132,8 @@ export const useSettingsStore = create<SettingsState>()(
         })),
 
       setTopTaskInCenter: (enabled) => set({ topTaskInCenter: enabled }),
+
+      completeOnboarding: () => set({ onboardingComplete: true }),
     }),
     {
       name: 'hour-one-settings',

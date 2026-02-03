@@ -121,7 +121,7 @@ This document tracks the implementation progress of all features for the Hour On
 
 | # | Feature | Status | Files | Notes |
 |---|---------|--------|-------|-------|
-| 5.1 | Onboarding Flow | ⏳ | - | First-time user setup |
+| 5.1 | Onboarding Flow | ✅ | `ui/Onboarding.tsx`, `settingsStore.ts` | Welcome wizard with name/location setup |
 | 5.2 | Performance Optimization | ⏳ | - | Lazy loading, code splitting |
 | 5.3 | Error Handling | ⏳ | - | Graceful degradation |
 | 5.4 | Keyboard Shortcuts | ⏳ | - | Quick actions |
@@ -142,10 +142,10 @@ This document tracks the implementation progress of all features for the Hour On
 | Phase 2: Free Features | 11 | 11 | 0 | 0 |
 | Phase 3: Pro Infrastructure | 5 | 0 | 0 | 5 |
 | Phase 4: Pro Features | 21 | 1 | 0 | 20 |
-| Phase 5: Polish & Launch | 10 | 1 | 0 | 9 |
-| **Total** | **53** | **19** | **0** | **34** |
+| Phase 5: Polish & Launch | 10 | 2 | 0 | 8 |
+| **Total** | **53** | **20** | **0** | **33** |
 
-**Overall Progress: 36% Complete (19/53 features)**
+**Overall Progress: 38% Complete (20/53 features)**
 
 ---
 
@@ -171,6 +171,7 @@ src/
 │   │   └── Weather.tsx ✅
 │   └── ui/
 │       ├── Dropdown.tsx ✅
+│       ├── Onboarding.tsx ✅
 │       ├── PopupPanel.tsx ✅
 │       ├── SettingsPanel.tsx ✅
 │       └── SettingsSidebar.tsx ✅
@@ -209,11 +210,11 @@ src/
 
 ## Next Up (Recommended Order)
 
-1. **5.1 Onboarding Flow** - First-time user name/location setup (HIGH PRIORITY)
-2. **4.3 Custom Themes** - Dark mode, color customization (partial - themeMode exists)
-3. **4.21 Soundscapes** - Ambient sounds for focus
-4. **4.11 Tab Stash** - Save/restore tab sessions (unique browser feature)
-5. **4.6 Advanced To-Do Lists** - Multiple lists, priorities, due dates
+1. **4.3 Custom Themes** - Dark mode, color customization (partial - themeMode exists)
+2. **4.21 Soundscapes** - Ambient sounds for focus
+3. **4.11 Tab Stash** - Save/restore tab sessions (unique browser feature)
+4. **4.6 Advanced To-Do Lists** - Multiple lists, priorities, due dates
+5. **4.12 World Clocks** - Multiple timezone display
 
 ---
 
