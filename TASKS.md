@@ -77,7 +77,7 @@ This document tracks the implementation progress of all features for the Hour On
 | 4.7 | Autofocus Mode | ✅ | `AutofocusMode.tsx`, `autofocusStore.ts` | Sequential task focus with skip/complete/not-today actions |
 | 4.8 | Habit Tracker | ✅ | `HabitTracker.tsx`, `habitStore.ts` | Daily habits, streaks, week view, frequency options |
 | 4.9 | Metrics Dashboard | ⏳ | - | Productivity analytics |
-| 4.10 | Balance Mode | ⏳ | - | Work-life balance tracking |
+| 4.10 | Balance Mode | ✅ | `BalanceMode.tsx`, `balanceStore.ts` | Work-life balance with score, sessions, week chart, break reminders |
 
 ### Tab & Session Management
 
@@ -218,8 +218,7 @@ src/
 
 ## Next Up (Recommended Order)
 
-1. **4.10 Balance Mode** - Work-life balance tracking
-2. **4.9 Metrics Dashboard** - Productivity analytics
+1. **4.9 Metrics Dashboard** - Productivity analytics
 
 ---
 
