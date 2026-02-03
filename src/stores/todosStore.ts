@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Task, TaskFolder } from '@/types';
+import type { Task, TaskFolder, TaskTag, TaskPriority, Subtask } from '@/types';
 import { SYSTEM_FOLDER_IDS } from '@/types';
 import { chromeStorage } from '@/lib/chromeStorage';
 
@@ -11,24 +11,54 @@ const DEFAULT_FOLDERS: TaskFolder[] = [
   { id: 'done', name: 'Done', icon: 'CheckCircle', isSystem: true, order: 2 },
 ];
 
+// Default tags
+const DEFAULT_TAGS: TaskTag[] = [
+  { id: 'work', name: 'Work', color: '#3b82f6' },
+  { id: 'personal', name: 'Personal', color: '#22c55e' },
+  { id: 'urgent', name: 'Urgent', color: '#ef4444' },
+];
+
 interface TodosState {
   tasks: Task[];
   folders: TaskFolder[];
+  tags: TaskTag[];
   activeFolderId: string;
+  searchQuery: string;
 
   // Task actions
-  addTask: (text: string, folderId?: string) => void;
+  addTask: (text: string, folderId?: string, options?: Partial<Pick<Task, 'priority' | 'dueDate' | 'tags'>>) => void;
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
   editTask: (id: string, text: string) => void;
   moveTask: (taskId: string, targetFolderId: string) => void;
   clearCompleted: () => void;
 
+  // Advanced task actions
+  setTaskPriority: (taskId: string, priority: TaskPriority | undefined) => void;
+  setTaskDueDate: (taskId: string, dueDate: string | undefined) => void;
+  addTaskTag: (taskId: string, tagId: string) => void;
+  removeTaskTag: (taskId: string, tagId: string) => void;
+  setTaskDescription: (taskId: string, description: string | undefined) => void;
+
+  // Subtask actions
+  addSubtask: (taskId: string, text: string) => void;
+  toggleSubtask: (taskId: string, subtaskId: string) => void;
+  deleteSubtask: (taskId: string, subtaskId: string) => void;
+  editSubtask: (taskId: string, subtaskId: string, text: string) => void;
+
+  // Tag actions
+  addTag: (name: string, color: string) => void;
+  updateTag: (id: string, updates: Partial<TaskTag>) => void;
+  deleteTag: (id: string) => void;
+
   // Folder actions
   addFolder: (name: string, color?: string) => void;
   updateFolder: (id: string, updates: Partial<TaskFolder>) => void;
   deleteFolder: (id: string) => void;
   setActiveFolder: (folderId: string) => void;
+
+  // Search
+  setSearchQuery: (query: string) => void;
 }
 
 // Generate unique ID
@@ -94,9 +124,11 @@ export const useTodosStore = create<TodosState>()(
     (set, get) => ({
       tasks: [],
       folders: DEFAULT_FOLDERS,
+      tags: DEFAULT_TAGS,
       activeFolderId: 'today',
+      searchQuery: '',
 
-      addTask: (text, folderId) => {
+      addTask: (text, folderId, options) => {
         const trimmed = text.trim();
         if (!trimmed) return;
 
@@ -113,6 +145,10 @@ export const useTodosStore = create<TodosState>()(
           completed: false,
           createdAt: new Date().toISOString(),
           folderId: targetFolderId,
+          priority: options?.priority,
+          dueDate: options?.dueDate,
+          tags: options?.tags,
+          subtasks: [],
         };
 
         set((state) => ({
@@ -200,6 +236,140 @@ export const useTodosStore = create<TodosState>()(
         }));
       },
 
+      // Advanced task actions
+      setTaskPriority: (taskId, priority) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === taskId ? { ...task, priority } : task
+          ),
+        }));
+      },
+
+      setTaskDueDate: (taskId, dueDate) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === taskId ? { ...task, dueDate } : task
+          ),
+        }));
+      },
+
+      addTaskTag: (taskId, tagId) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) => {
+            if (task.id !== taskId) return task;
+            const currentTags = task.tags || [];
+            if (currentTags.includes(tagId)) return task;
+            return { ...task, tags: [...currentTags, tagId] };
+          }),
+        }));
+      },
+
+      removeTaskTag: (taskId, tagId) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) => {
+            if (task.id !== taskId) return task;
+            return { ...task, tags: (task.tags || []).filter((t) => t !== tagId) };
+          }),
+        }));
+      },
+
+      setTaskDescription: (taskId, description) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === taskId ? { ...task, description } : task
+          ),
+        }));
+      },
+
+      // Subtask actions
+      addSubtask: (taskId, text) => {
+        const trimmed = text.trim();
+        if (!trimmed) return;
+
+        set((state) => ({
+          tasks: state.tasks.map((task) => {
+            if (task.id !== taskId) return task;
+            const subtasks = task.subtasks || [];
+            return {
+              ...task,
+              subtasks: [...subtasks, { id: generateId(), text: trimmed, completed: false }],
+            };
+          }),
+        }));
+      },
+
+      toggleSubtask: (taskId, subtaskId) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) => {
+            if (task.id !== taskId) return task;
+            return {
+              ...task,
+              subtasks: (task.subtasks || []).map((st) =>
+                st.id === subtaskId ? { ...st, completed: !st.completed } : st
+              ),
+            };
+          }),
+        }));
+      },
+
+      deleteSubtask: (taskId, subtaskId) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) => {
+            if (task.id !== taskId) return task;
+            return {
+              ...task,
+              subtasks: (task.subtasks || []).filter((st) => st.id !== subtaskId),
+            };
+          }),
+        }));
+      },
+
+      editSubtask: (taskId, subtaskId, text) => {
+        const trimmed = text.trim();
+        if (!trimmed) return;
+
+        set((state) => ({
+          tasks: state.tasks.map((task) => {
+            if (task.id !== taskId) return task;
+            return {
+              ...task,
+              subtasks: (task.subtasks || []).map((st) =>
+                st.id === subtaskId ? { ...st, text: trimmed } : st
+              ),
+            };
+          }),
+        }));
+      },
+
+      // Tag actions
+      addTag: (name, color) => {
+        const trimmed = name.trim();
+        if (!trimmed) return;
+
+        set((state) => ({
+          tags: [...state.tags, { id: generateId(), name: trimmed, color }],
+        }));
+      },
+
+      updateTag: (id, updates) => {
+        set((state) => ({
+          tags: state.tags.map((tag) =>
+            tag.id === id ? { ...tag, ...updates } : tag
+          ),
+        }));
+      },
+
+      deleteTag: (id) => {
+        set((state) => ({
+          tags: state.tags.filter((tag) => tag.id !== id),
+          // Remove tag from all tasks
+          tasks: state.tasks.map((task) => ({
+            ...task,
+            tags: (task.tags || []).filter((t) => t !== id),
+          })),
+        }));
+      },
+
       addFolder: (name, color) => {
         const trimmed = name.trim();
         if (!trimmed) return;
@@ -253,10 +423,15 @@ export const useTodosStore = create<TodosState>()(
       setActiveFolder: (folderId) => {
         set({ activeFolderId: folderId });
       },
+
+      // Search
+      setSearchQuery: (query) => {
+        set({ searchQuery: query });
+      },
     }),
     {
       name: 'hour-one-todos',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => chromeStorage),
       migrate: (persistedState: unknown, version: number) => {
         // Validate persisted state before processing
@@ -267,7 +442,9 @@ export const useTodosStore = create<TodosState>()(
           return {
             tasks: [],
             folders: DEFAULT_FOLDERS,
+            tags: DEFAULT_TAGS,
             activeFolderId: 'today',
+            searchQuery: '',
           };
         }
 
@@ -288,8 +465,19 @@ export const useTodosStore = create<TodosState>()(
           return {
             ...state,
             folders: DEFAULT_FOLDERS,
+            tags: DEFAULT_TAGS,
             activeFolderId: 'today',
+            searchQuery: '',
             tasks,
+          };
+        }
+
+        if (version < 3) {
+          // Migration from v2 to v3: add tags and advanced task fields
+          return {
+            ...state,
+            tags: DEFAULT_TAGS,
+            searchQuery: '',
           };
         }
 

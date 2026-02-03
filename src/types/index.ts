@@ -17,6 +17,23 @@ export interface TaskFolder {
   color?: string;      // for custom folders
 }
 
+// Task Priority
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+// Task Tag
+export interface TaskTag {
+  id: string;
+  name: string;
+  color: string;
+}
+
+// Subtask
+export interface Subtask {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
 // Task types
 export interface Task {
   id: string;
@@ -25,6 +42,12 @@ export interface Task {
   createdAt: string;
   completedAt?: string;
   folderId: string;    // defaults to 'inbox'
+  // Advanced features
+  priority?: TaskPriority;
+  dueDate?: string;    // ISO date string
+  tags?: string[];     // tag IDs
+  subtasks?: Subtask[];
+  description?: string;
 }
 
 // Quick Link types
