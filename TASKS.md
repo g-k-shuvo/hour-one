@@ -1,6 +1,6 @@
 # Hour One - Feature Task Tracker
 
-> Last Updated: 2026-01-30
+> Last Updated: 2026-02-03
 
 ## Overview
 
@@ -161,15 +161,25 @@ src/
 │   │   ├── Bookmarks.tsx ✅
 │   │   ├── Clock.tsx ✅
 │   │   ├── Focus.tsx ✅
+│   │   ├── FocusModeOverlay.tsx ✅
 │   │   ├── Greeting.tsx ✅
+│   │   ├── PinnedItem.tsx ✅
 │   │   ├── QuickLinks.tsx ✅
 │   │   ├── Quote.tsx ✅
 │   │   ├── SearchBar.tsx ✅
 │   │   ├── TodoList.tsx ✅
 │   │   └── Weather.tsx ✅
 │   └── ui/
-│       └── SettingsPanel.tsx ✅
+│       ├── Dropdown.tsx ✅
+│       ├── PopupPanel.tsx ✅
+│       ├── SettingsPanel.tsx ✅
+│       └── SettingsSidebar.tsx ✅
 ├── hooks/
+│   ├── useAdaptivePosition.ts ✅
+│   └── useClickOutside.ts ✅
+├── lib/
+│   ├── chromeStorage.ts ✅
+│   └── dateUtils.ts ✅
 ├── services/
 │   ├── backgroundService.ts ✅
 │   ├── bookmarksService.ts ✅
@@ -178,7 +188,9 @@ src/
 ├── stores/
 │   ├── backgroundStore.ts ✅
 │   ├── bookmarksStore.ts ✅
+│   ├── focusSessionStore.ts ✅
 │   ├── focusStore.ts ✅
+│   ├── mantraStore.ts ✅
 │   ├── quickLinksStore.ts ✅
 │   ├── quoteStore.ts ✅
 │   ├── settingsStore.ts ✅
@@ -197,11 +209,12 @@ src/
 
 ## Next Up (Recommended Order)
 
-1. **5.5 Widget Visibility Toggles** - Add show/hide toggles in Settings
+1. **5.5 Widget Visibility Toggles** - Add show/hide toggles in Settings (HIGH PRIORITY)
 2. **5.1 Onboarding Flow** - First-time user name/location setup
-3. **4.5 Pomodoro Timer** - Popular productivity feature
-4. **4.11 Tab Stash** - Unique browser feature
-5. **4.6 Advanced To-Do Lists** - Enhance existing feature
+3. **4.3 Custom Themes** - Dark mode, color customization
+4. **4.11 Tab Stash** - Save/restore tab sessions (unique browser feature)
+5. **4.6 Advanced To-Do Lists** - Multiple lists, priorities, due dates
+6. **4.21 Soundscapes** - Ambient sounds for focus
 
 ---
 
