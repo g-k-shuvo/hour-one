@@ -83,7 +83,7 @@ This document tracks the implementation progress of all features for the Hour On
 
 | # | Feature | Status | Files | Notes |
 |---|---------|--------|-------|-------|
-| 4.11 | Tab Stash | ⏳ | - | Save/restore tab sessions |
+| 4.11 | Tab Stash | ✅ | `TabStash.tsx`, `tabStashStore.ts` | Save/restore browser sessions |
 
 ### Time & Planning
 
@@ -141,11 +141,11 @@ This document tracks the implementation progress of all features for the Hour On
 | Phase 1: Foundation | 6 | 6 | 0 | 0 |
 | Phase 2: Free Features | 11 | 11 | 0 | 0 |
 | Phase 3: Pro Infrastructure | 5 | 0 | 0 | 5 |
-| Phase 4: Pro Features | 21 | 3 | 0 | 18 |
+| Phase 4: Pro Features | 21 | 4 | 0 | 17 |
 | Phase 5: Polish & Launch | 10 | 2 | 0 | 8 |
-| **Total** | **53** | **22** | **0** | **31** |
+| **Total** | **53** | **23** | **0** | **30** |
 
-**Overall Progress: 42% Complete (22/53 features)**
+**Overall Progress: 43% Complete (23/53 features)**
 
 ---
 
@@ -168,6 +168,7 @@ src/
 │   │   ├── Quote.tsx ✅
 │   │   ├── SearchBar.tsx ✅
 │   │   ├── Soundscapes.tsx ✅
+│   │   ├── TabStash.tsx ✅
 │   │   ├── TodoList.tsx ✅
 │   │   └── Weather.tsx ✅
 │   └── ui/
@@ -197,6 +198,7 @@ src/
 │   ├── quoteStore.ts ✅
 │   ├── settingsStore.ts ✅
 │   ├── soundscapeStore.ts ✅
+│   ├── tabStashStore.ts ✅
 │   ├── todosStore.ts ✅
 │   └── weatherStore.ts ✅
 ├── types/
@@ -212,11 +214,11 @@ src/
 
 ## Next Up (Recommended Order)
 
-1. **4.11 Tab Stash** - Save/restore tab sessions (unique browser feature)
-2. **4.6 Advanced To-Do Lists** - Multiple lists, priorities, due dates
-3. **4.12 World Clocks** - Multiple timezone display
-4. **4.13 Countdown Timers** - Event countdowns
-5. **4.4 Widget Drag & Drop** - Repositionable widgets
+1. **4.6 Advanced To-Do Lists** - Multiple lists, priorities, due dates
+2. **4.12 World Clocks** - Multiple timezone display
+3. **4.13 Countdown Timers** - Event countdowns
+4. **4.4 Widget Drag & Drop** - Repositionable widgets
+5. **4.8 Habit Tracker** - Daily habits, streaks
 
 ---
 

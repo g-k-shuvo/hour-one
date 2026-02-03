@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckSquare, ExternalLink, MapPin, Search, Target, SlidersHorizontal, Play, Settings } from 'lucide-react';
+import { CheckSquare, ExternalLink, MapPin, Search, Target, SlidersHorizontal, Play, Settings, Layers } from 'lucide-react';
 import { Clock } from '@/components/widgets/Clock';
 import { Greeting } from '@/components/widgets/Greeting';
 import { Focus } from '@/components/widgets/Focus';
@@ -12,6 +12,7 @@ import { Weather } from '@/components/widgets/Weather';
 import { Bookmarks } from '@/components/widgets/Bookmarks';
 import { Background } from '@/components/widgets/Background';
 import { SoundscapesDropdown } from '@/components/widgets/Soundscapes';
+import { TabStashPanel, TabStashHeaderActions } from '@/components/widgets/TabStash';
 import { FocusModeOverlay } from '@/components/widgets/FocusModeOverlay';
 import { SettingsSidebar } from '@/components/ui/SettingsSidebar';
 import { Onboarding } from '@/components/ui/Onboarding';
@@ -37,6 +38,7 @@ export function Dashboard() {
 
   const [showTodos, setShowTodos] = useState(false);
   const [showLinks, setShowLinks] = useState(false);
+  const [showTabStash, setShowTabStash] = useState(false);
   const [centerMode, setCenterMode] = useState<CenterMode>('focus');
   const [showModeToggle, setShowModeToggle] = useState(false);
 
@@ -114,6 +116,11 @@ export function Dashboard() {
               </div>
             )}
 
+            <IconButton
+              icon={Layers}
+              onClick={() => setShowTabStash(!showTabStash)}
+              label="Tab Stash"
+            />
             <IconButton
               icon={Play}
               onClick={() => enterFocusMode(focus)}
@@ -309,6 +316,18 @@ export function Dashboard() {
           headerActions={<QuickLinksHeaderActions onClose={() => setShowLinks(false)} />}
         >
           <QuickLinks />
+        </PopupPanel>
+
+        {/* Tab Stash Popup */}
+        <PopupPanel
+          isOpen={showTabStash}
+          onClose={() => setShowTabStash(false)}
+          position="top-left"
+          title="Tab Stash"
+          maxWidth="max-w-sm"
+          headerActions={<TabStashHeaderActions onClose={() => setShowTabStash(false)} />}
+        >
+          <TabStashPanel />
         </PopupPanel>
       </main>
 

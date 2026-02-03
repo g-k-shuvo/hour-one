@@ -3,6 +3,7 @@ import { Settings, X, User, HelpCircle, Info, Heart, Eye, Sun, Moon, Monitor, Ch
 import { useSettingsStore, ACCENT_COLORS, type ThemeMode, type AccentColor } from '@/stores/settingsStore';
 import { useMantraStore } from '@/stores/mantraStore';
 import { useSoundscapeStore, SOUNDSCAPES } from '@/stores/soundscapeStore';
+import { useTabStashStore } from '@/stores/tabStashStore';
 import { getMantraById, getAllMantras } from '@/services/mantrasService';
 import { Toggle } from './Toggle';
 import { IconButton } from './IconButton';
@@ -30,7 +31,8 @@ type SettingsSection =
   | 'search'
   | 'links'
   | 'tasks'
-  | 'soundscapes';
+  | 'soundscapes'
+  | 'tabstash';
 
 interface NavItemProps {
   label: string;
@@ -95,6 +97,13 @@ export function SettingsSidebar() {
     currentSoundscapeId,
     setCurrentSoundscape,
   } = useSoundscapeStore();
+
+  const {
+    sessions: tabSessions,
+    hasPermission: tabStashPermission,
+    isApiAvailable: tabStashApiAvailable,
+    requestPermission: requestTabStashPermission,
+  } = useTabStashStore();
 
   // Listen for openSettings event from other components
   useEffect(() => {
@@ -562,6 +571,65 @@ export function SettingsSidebar() {
           </div>
         );
 
+      case 'tabstash':
+        return (
+          <div>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Tab Stash</h3>
+            <p className="text-sm text-theme-secondary mb-6">Save and restore browser sessions</p>
+
+            <div className="divide-y divide-white/10">
+              <Toggle
+                enabled={widgets.tabStash}
+                onChange={() => toggleWidget('tabStash')}
+                title="Show Tab Stash"
+                description="Display Tab Stash button in dashboard"
+              />
+            </div>
+
+            {tabStashApiAvailable && (
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-medium text-theme-primary">
+                    Permission Status
+                  </label>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    tabStashPermission
+                      ? 'bg-green-500/20 text-green-400'
+                      : 'bg-yellow-500/20 text-yellow-400'
+                  }`}>
+                    {tabStashPermission ? 'Granted' : 'Not granted'}
+                  </span>
+                </div>
+
+                {!tabStashPermission && (
+                  <button
+                    onClick={requestTabStashPermission}
+                    className="w-full py-2 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent/90 transition-colors"
+                  >
+                    Enable Tab Access
+                  </button>
+                )}
+
+                {tabStashPermission && (
+                  <div className="mt-4">
+                    <p className="text-sm text-theme-secondary">
+                      {tabSessions.length} saved session{tabSessions.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!tabStashApiAvailable && (
+              <div className="mt-6 p-3 bg-theme-secondary rounded-lg">
+                <p className="text-sm text-theme-muted">
+                  Tab Stash is only available when running as a Chrome extension.
+                </p>
+              </div>
+            )}
+          </div>
+        );
+
       default:
         return null;
     }
@@ -645,6 +713,11 @@ export function SettingsSidebar() {
                       label="Soundscapes"
                       active={activeSection === 'soundscapes'}
                       onClick={() => setActiveSection('soundscapes')}
+                    />
+                    <NavItem
+                      label="Tab Stash"
+                      active={activeSection === 'tabstash'}
+                      onClick={() => setActiveSection('tabstash')}
                     />
                   </nav>
 

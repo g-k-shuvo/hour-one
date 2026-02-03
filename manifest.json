@@ -16,7 +16,8 @@
   ],
   "optional_permissions": [
     "geolocation",
-    "bookmarks"
+    "bookmarks",
+    "tabs"
   ],
   "host_permissions": [
     "https://images.unsplash.com/*"
