@@ -21,12 +21,14 @@ import { SettingsSidebar } from '@/components/ui/SettingsSidebar';
 import { Onboarding } from '@/components/ui/Onboarding';
 import { IconButton } from '@/components/ui/IconButton';
 import { PopupPanel } from '@/components/ui/PopupPanel';
+import { DraggableWidget, useDragReorder } from '@/components/ui/DraggableWidget';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTodosStore } from '@/stores/todosStore';
 import { useWeatherStore } from '@/stores/weatherStore';
 import { useFocusSessionStore } from '@/stores/focusSessionStore';
 import { useFocusStore } from '@/stores/focusStore';
 import { useQuickLinksStore, usePinnedItems } from '@/stores/quickLinksStore';
+import { useLayoutStore, type CenterWidgetId } from '@/stores/layoutStore';
 
 type CenterMode = 'focus' | 'search';
 
@@ -38,6 +40,7 @@ export function Dashboard() {
   const { focus } = useFocusStore();
   const { links } = useQuickLinksStore();
   const pinnedItems = usePinnedItems();
+  const { centerWidgetOrder, swapCenterWidgets } = useLayoutStore();
 
   const [showTodos, setShowTodos] = useState(false);
   const [showLinks, setShowLinks] = useState(false);
@@ -49,6 +52,9 @@ export function Dashboard() {
   const [showModeToggle, setShowModeToggle] = useState(false);
 
   const incompleteTasks = tasks.filter((t) => !t.completed).length;
+
+  // Drag and drop for center widgets
+  const dragHandlers = useDragReorder(swapCenterWidgets);
 
   // Determine if we should show the toggle (both focus and search are enabled)
   const showToggle = widgets.focus && widgets.search;
@@ -180,98 +186,118 @@ export function Dashboard() {
 
         {/* Center Content - vertically centered */}
         <div className="flex flex-1 flex-col items-center justify-center gap-2 px-8 py-4">
-          <div
-            style={{
-              animation: isReturningFromFocus ? `fadeInStagger 0.5s ease-out ${getReturnDelay(2)} both` : undefined,
-            }}
-          >
-            {widgets.clock && <Clock />}
-          </div>
+          {centerWidgetOrder.map((widgetId, index) => {
+            // Render widget based on ID
+            const renderWidget = () => {
+              switch (widgetId) {
+                case 'clock':
+                  return widgets.clock ? <Clock /> : null;
+                case 'greeting':
+                  return widgets.greeting ? <Greeting /> : null;
+                case 'focus':
+                  // Focus widget with mode toggle for search
+                  return (
+                    <div className="relative w-full max-w-xl group/toggle">
+                      {/* Mode toggle - absolute positioned on left */}
+                      {showToggle && (
+                        <div className="absolute -left-12 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/toggle:opacity-100 transition-opacity">
+                          {/* Expand/collapse button */}
+                          <button
+                            onClick={() => setShowModeToggle(!showModeToggle)}
+                            className={`rounded-full p-1.5 transition-all hover:bg-white/10 ${
+                              showModeToggle
+                                ? 'bg-white/20 text-white opacity-100'
+                                : 'text-white/40 hover:text-white/60'
+                            }`}
+                            aria-label="Toggle mode selector"
+                            title="Switch between Focus and Search"
+                          >
+                            <SlidersHorizontal size={14} />
+                          </button>
 
-          <div
-            style={{
-              animation: isReturningFromFocus ? `fadeInStagger 0.5s ease-out ${getReturnDelay(3)} both` : undefined,
-            }}
-          >
-            {widgets.greeting && <Greeting />}
-          </div>
+                          {/* Mode toggle pill - only shown when expanded */}
+                          {showModeToggle && (
+                            <div
+                              className="flex items-center rounded-full bg-white/10 p-0.5 backdrop-blur-sm"
+                              style={{ animation: 'expandIn 150ms ease-out' }}
+                            >
+                              <button
+                                onClick={() => setCenterMode('focus')}
+                                className={`rounded-full p-1.5 transition-all ${
+                                  centerMode === 'focus'
+                                    ? 'bg-white/20 text-white'
+                                    : 'text-white/50 hover:text-white/70'
+                                }`}
+                                aria-label="Focus mode"
+                                title="Focus"
+                              >
+                                <Target size={14} />
+                              </button>
+                              <button
+                                onClick={() => setCenterMode('search')}
+                                className={`rounded-full p-1.5 transition-all ${
+                                  centerMode === 'search'
+                                    ? 'bg-white/20 text-white'
+                                    : 'text-white/50 hover:text-white/70'
+                                }`}
+                                aria-label="Search mode"
+                                title="Search"
+                              >
+                                <Search size={14} />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
 
-          {/* Focus/Search container with mode toggle */}
-          <div
-            className="relative w-full max-w-xl mt-8 group/toggle"
-            style={{
-              animation: isReturningFromFocus ? `fadeInStagger 0.5s ease-out ${getReturnDelay(4)} both` : undefined,
-            }}
-          >
-            {/* Mode toggle - absolute positioned on left */}
-            {showToggle && (
-              <div className="absolute -left-12 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/toggle:opacity-100 transition-opacity">
-                {/* Expand/collapse button */}
-                <button
-                  onClick={() => setShowModeToggle(!showModeToggle)}
-                  className={`rounded-full p-1.5 transition-all hover:bg-white/10 ${
-                    showModeToggle
-                      ? 'bg-white/20 text-white opacity-100'
-                      : 'text-white/40 hover:text-white/60'
-                  }`}
-                  aria-label="Toggle mode selector"
-                  title="Switch between Focus and Search"
+                      {/* Content area - centered */}
+                      <div className="w-full max-w-lg mx-auto">
+                        {showToggle ? (
+                          <>
+                            {showFocus && <Focus />}
+                            {showSearch && <SearchBar />}
+                          </>
+                        ) : (
+                          <>
+                            {widgets.focus && <Focus />}
+                            {widgets.search && !widgets.focus && <SearchBar />}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                default:
+                  return null;
+              }
+            };
+
+            const content = renderWidget();
+            if (!content) return null;
+
+            return (
+              <DraggableWidget
+                key={widgetId}
+                id={widgetId}
+                index={index}
+                onDragStart={dragHandlers.handleDragStart}
+                onDragOver={dragHandlers.handleDragOver}
+                onDragEnd={dragHandlers.handleDragEnd}
+                isDragging={dragHandlers.isDragging}
+                dragOverIndex={dragHandlers.dragOverIndex}
+                className={widgetId === 'focus' ? 'mt-8' : ''}
+              >
+                <div
+                  style={{
+                    animation: isReturningFromFocus
+                      ? `fadeInStagger 0.5s ease-out ${getReturnDelay(index + 2)} both`
+                      : undefined,
+                  }}
                 >
-                  <SlidersHorizontal size={14} />
-                </button>
-
-                {/* Mode toggle pill - only shown when expanded */}
-                {showModeToggle && (
-                  <div
-                    className="flex items-center rounded-full bg-white/10 p-0.5 backdrop-blur-sm"
-                    style={{ animation: 'expandIn 150ms ease-out' }}
-                  >
-                    <button
-                      onClick={() => setCenterMode('focus')}
-                      className={`rounded-full p-1.5 transition-all ${
-                        centerMode === 'focus'
-                          ? 'bg-white/20 text-white'
-                          : 'text-white/50 hover:text-white/70'
-                      }`}
-                      aria-label="Focus mode"
-                      title="Focus"
-                    >
-                      <Target size={14} />
-                    </button>
-                    <button
-                      onClick={() => setCenterMode('search')}
-                      className={`rounded-full p-1.5 transition-all ${
-                        centerMode === 'search'
-                          ? 'bg-white/20 text-white'
-                          : 'text-white/50 hover:text-white/70'
-                      }`}
-                      aria-label="Search mode"
-                      title="Search"
-                    >
-                      <Search size={14} />
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Content area - centered */}
-            <div className="w-full max-w-lg mx-auto">
-              {showToggle ? (
-                <>
-                  {/* Focus or Search based on mode (when both enabled) */}
-                  {showFocus && <Focus />}
-                  {showSearch && <SearchBar />}
-                </>
-              ) : (
-                <>
-                  {/* Show single widget directly (when only one enabled) */}
-                  {widgets.focus && <Focus />}
-                  {widgets.search && !widgets.focus && <SearchBar />}
-                </>
-              )}
-            </div>
-          </div>
+                  {content}
+                </div>
+              </DraggableWidget>
+            );
+          })}
         </div>
 
         {/* Bottom Bar */}

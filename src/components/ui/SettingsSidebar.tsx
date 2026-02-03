@@ -7,6 +7,7 @@ import { useTabStashStore } from '@/stores/tabStashStore';
 import { useWorldClocksStore } from '@/stores/worldClocksStore';
 import { useCountdownStore } from '@/stores/countdownStore';
 import { useHabitStore, calculateStreak } from '@/stores/habitStore';
+import { useLayoutStore, type CenterWidgetId } from '@/stores/layoutStore';
 import { getMantraById, getAllMantras } from '@/services/mantrasService';
 import { Toggle } from './Toggle';
 import { IconButton } from './IconButton';
@@ -26,6 +27,7 @@ const TASK_INTEGRATIONS = [
 type SettingsSection =
   | 'general'
   | 'theme'
+  | 'layout'
   | 'clock'
   | 'photos'
   | 'quotes'
@@ -122,6 +124,11 @@ export function SettingsSidebar() {
   const {
     habits,
   } = useHabitStore();
+
+  const {
+    centerWidgetOrder,
+    resetLayout,
+  } = useLayoutStore();
 
   // Listen for openSettings event from other components
   useEffect(() => {
@@ -287,6 +294,60 @@ export function SettingsSidebar() {
                   )
                 )}
               </div>
+            </div>
+          </div>
+        );
+
+      case 'layout':
+        const widgetLabels: Record<CenterWidgetId, string> = {
+          clock: 'Clock',
+          greeting: 'Greeting',
+          focus: 'Focus / Search',
+        };
+        const isDefaultOrder = centerWidgetOrder.join(',') === 'clock,greeting,focus';
+        return (
+          <div>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Layout</h3>
+            <p className="text-sm text-theme-secondary mb-6">Customize widget positions</p>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-theme-primary mb-3">
+                Center Widget Order
+              </label>
+              <p className="text-xs text-theme-muted mb-4">
+                Drag widgets on the dashboard to reorder them. Hover over a widget and use the grip handle on the left.
+              </p>
+
+              <div className="space-y-2">
+                {centerWidgetOrder.map((widgetId, index) => (
+                  <div
+                    key={widgetId}
+                    className="flex items-center gap-3 p-3 bg-theme-secondary rounded-lg"
+                  >
+                    <span className="text-sm text-theme-muted w-6">{index + 1}.</span>
+                    <span className="text-sm text-theme-primary">{widgetLabels[widgetId]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-theme pt-4">
+              <button
+                onClick={resetLayout}
+                disabled={isDefaultOrder}
+                className={`w-full py-2 text-sm font-medium rounded-lg transition-colors ${
+                  isDefaultOrder
+                    ? 'bg-theme-secondary text-theme-muted cursor-not-allowed'
+                    : 'bg-theme-secondary text-theme-primary hover:bg-theme-tertiary'
+                }`}
+              >
+                Reset to Default Order
+              </button>
+              {isDefaultOrder && (
+                <p className="text-xs text-theme-muted text-center mt-2">
+                  Layout is already at default
+                </p>
+              )}
             </div>
           </div>
         );
@@ -846,6 +907,11 @@ export function SettingsSidebar() {
                       label="Theme"
                       active={activeSection === 'theme'}
                       onClick={() => setActiveSection('theme')}
+                    />
+                    <NavItem
+                      label="Layout"
+                      active={activeSection === 'layout'}
+                      onClick={() => setActiveSection('layout')}
                     />
                     <NavItem
                       label="Clock"
