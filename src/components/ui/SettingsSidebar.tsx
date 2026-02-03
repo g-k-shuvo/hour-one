@@ -7,6 +7,7 @@ import { useTabStashStore } from '@/stores/tabStashStore';
 import { useWorldClocksStore } from '@/stores/worldClocksStore';
 import { useCountdownStore } from '@/stores/countdownStore';
 import { useHabitStore, calculateStreak } from '@/stores/habitStore';
+import { useBalanceStore, formatDuration, getScoreLabel } from '@/stores/balanceStore';
 import { useLayoutStore, type CenterWidgetId } from '@/stores/layoutStore';
 import { getMantraById, getAllMantras } from '@/services/mantrasService';
 import { Toggle } from './Toggle';
@@ -40,7 +41,8 @@ type SettingsSection =
   | 'tabstash'
   | 'worldclocks'
   | 'countdowns'
-  | 'habits';
+  | 'habits'
+  | 'balance';
 
 interface NavItemProps {
   label: string;
@@ -124,6 +126,12 @@ export function SettingsSidebar() {
   const {
     habits,
   } = useHabitStore();
+
+  const {
+    goals: balanceGoals,
+    getTodayLog,
+    getWorkLifeScore,
+  } = useBalanceStore();
 
   const {
     centerWidgetOrder,
@@ -869,6 +877,61 @@ export function SettingsSidebar() {
           </div>
         );
 
+      case 'balance':
+        const todayLog = getTodayLog();
+        const balanceScore = getWorkLifeScore();
+        const { label: scoreLabel, color: scoreColor } = getScoreLabel(balanceScore);
+        return (
+          <div>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Balance</h3>
+            <p className="text-sm text-theme-secondary mb-6">Track work-life balance</p>
+
+            <div className="divide-y divide-white/10">
+              <Toggle
+                enabled={widgets.balance}
+                onChange={() => toggleWidget('balance')}
+                title="Show Balance"
+                description="Display work-life balance tracker on dashboard"
+              />
+            </div>
+
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-sm font-medium text-theme-primary">
+                  Today's Status
+                </label>
+                <span
+                  className="text-xs font-medium px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: `${scoreColor}20`, color: scoreColor }}
+                >
+                  {scoreLabel} ({balanceScore})
+                </span>
+              </div>
+
+              <div className="p-3 bg-theme-secondary rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-theme-secondary">Work today</span>
+                  <span className="text-sm font-medium text-theme-primary">
+                    {formatDuration(todayLog.workMinutes)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-theme-secondary">Breaks today</span>
+                  <span className="text-sm font-medium text-theme-primary">
+                    {formatDuration(todayLog.breakMinutes)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-theme-secondary">Daily target</span>
+                  <span className="text-sm font-medium text-theme-primary">
+                    {balanceGoals.dailyWorkHours}h
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -977,6 +1040,11 @@ export function SettingsSidebar() {
                       label="Habits"
                       active={activeSection === 'habits'}
                       onClick={() => setActiveSection('habits')}
+                    />
+                    <NavItem
+                      label="Balance"
+                      active={activeSection === 'balance'}
+                      onClick={() => setActiveSection('balance')}
                     />
                   </nav>
 
