@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckSquare, ExternalLink, MapPin, Search, Target, SlidersHorizontal, Play, Settings, Layers, Globe } from 'lucide-react';
+import { CheckSquare, ExternalLink, MapPin, Search, Target, SlidersHorizontal, Play, Settings, Layers, Globe, Timer } from 'lucide-react';
 import { Clock } from '@/components/widgets/Clock';
 import { Greeting } from '@/components/widgets/Greeting';
 import { Focus } from '@/components/widgets/Focus';
@@ -14,6 +14,7 @@ import { Background } from '@/components/widgets/Background';
 import { SoundscapesDropdown } from '@/components/widgets/Soundscapes';
 import { TabStashPanel, TabStashHeaderActions } from '@/components/widgets/TabStash';
 import { WorldClocksButton, WorldClocksPanel, WorldClocksHeaderActions } from '@/components/widgets/WorldClocks';
+import { CountdownButton, CountdownPanel, CountdownHeaderActions } from '@/components/widgets/Countdown';
 import { FocusModeOverlay } from '@/components/widgets/FocusModeOverlay';
 import { SettingsSidebar } from '@/components/ui/SettingsSidebar';
 import { Onboarding } from '@/components/ui/Onboarding';
@@ -41,6 +42,7 @@ export function Dashboard() {
   const [showLinks, setShowLinks] = useState(false);
   const [showTabStash, setShowTabStash] = useState(false);
   const [showWorldClocks, setShowWorldClocks] = useState(false);
+  const [showCountdowns, setShowCountdowns] = useState(false);
   const [centerMode, setCenterMode] = useState<CenterMode>('focus');
   const [showModeToggle, setShowModeToggle] = useState(false);
 
@@ -130,6 +132,13 @@ export function Dashboard() {
                 label="World Clocks"
               />
             )}
+            {widgets.countdowns && (
+              <IconButton
+                icon={Timer}
+                onClick={() => setShowCountdowns(!showCountdowns)}
+                label="Countdowns"
+              />
+            )}
             <IconButton
               icon={Play}
               onClick={() => enterFocusMode(focus)}
@@ -142,8 +151,9 @@ export function Dashboard() {
             />
           </div>
 
-          {/* Top Right - World Clocks, Soundscapes and Weather */}
+          {/* Top Right - Countdowns, World Clocks, Soundscapes and Weather */}
           <div className="flex items-center gap-3">
+            {widgets.countdowns && <CountdownButton />}
             {widgets.worldClocks && <WorldClocksButton />}
             {widgets.soundscapes && <SoundscapesDropdown />}
             <div className="flex items-center gap-4">
@@ -350,6 +360,18 @@ export function Dashboard() {
           headerActions={<WorldClocksHeaderActions onClose={() => setShowWorldClocks(false)} />}
         >
           <WorldClocksPanel />
+        </PopupPanel>
+
+        {/* Countdowns Popup */}
+        <PopupPanel
+          isOpen={showCountdowns && widgets.countdowns}
+          onClose={() => setShowCountdowns(false)}
+          position="top-left"
+          title="Countdowns"
+          maxWidth="max-w-sm"
+          headerActions={<CountdownHeaderActions onClose={() => setShowCountdowns(false)} />}
+        >
+          <CountdownPanel />
         </PopupPanel>
       </main>
 

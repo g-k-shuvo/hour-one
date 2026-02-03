@@ -5,6 +5,7 @@ import { useMantraStore } from '@/stores/mantraStore';
 import { useSoundscapeStore, SOUNDSCAPES } from '@/stores/soundscapeStore';
 import { useTabStashStore } from '@/stores/tabStashStore';
 import { useWorldClocksStore } from '@/stores/worldClocksStore';
+import { useCountdownStore } from '@/stores/countdownStore';
 import { getMantraById, getAllMantras } from '@/services/mantrasService';
 import { Toggle } from './Toggle';
 import { IconButton } from './IconButton';
@@ -34,7 +35,8 @@ type SettingsSection =
   | 'tasks'
   | 'soundscapes'
   | 'tabstash'
-  | 'worldclocks';
+  | 'worldclocks'
+  | 'countdowns';
 
 interface NavItemProps {
   label: string;
@@ -110,6 +112,10 @@ export function SettingsSidebar() {
   const {
     clocks: worldClocks,
   } = useWorldClocksStore();
+
+  const {
+    timers: countdownTimers,
+  } = useCountdownStore();
 
   // Listen for openSettings event from other components
   useEffect(() => {
@@ -684,6 +690,57 @@ export function SettingsSidebar() {
           </div>
         );
 
+      case 'countdowns':
+        return (
+          <div>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Countdowns</h3>
+            <p className="text-sm text-theme-secondary mb-6">Event and deadline countdowns</p>
+
+            <div className="divide-y divide-white/10">
+              <Toggle
+                enabled={widgets.countdowns}
+                onChange={() => toggleWidget('countdowns')}
+                title="Show Countdowns"
+                description="Display countdown timers on dashboard"
+              />
+            </div>
+
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-sm font-medium text-theme-primary">
+                  Active Countdowns
+                </label>
+                <span className="text-xs text-theme-muted">
+                  {countdownTimers.length} timer{countdownTimers.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+
+              {countdownTimers.length === 0 ? (
+                <p className="text-sm text-theme-muted">
+                  No countdown timers yet. Click the timer icon on your dashboard to add one.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {countdownTimers.map((timer) => (
+                    <div
+                      key={timer.id}
+                      className="flex items-center justify-between p-2 bg-theme-secondary rounded-lg"
+                      style={{ borderLeft: `3px solid ${timer.color}` }}
+                    >
+                      <div>
+                        <p className="text-sm text-theme-primary">{timer.title}</p>
+                        <p className="text-xs text-theme-muted">
+                          {new Date(timer.targetDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -777,6 +834,11 @@ export function SettingsSidebar() {
                       label="World Clocks"
                       active={activeSection === 'worldclocks'}
                       onClick={() => setActiveSection('worldclocks')}
+                    />
+                    <NavItem
+                      label="Countdowns"
+                      active={activeSection === 'countdowns'}
+                      onClick={() => setActiveSection('countdowns')}
                     />
                   </nav>
 
