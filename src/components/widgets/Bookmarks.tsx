@@ -50,7 +50,7 @@ function NestedFolder({ bookmark, onClose }: { bookmark: BookmarkType; onClose: 
         onClick={handleToggle}
         className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm transition-colors ${menuItem} ${isOpen ? 'bg-white/10 dark:bg-white/10' : ''}`}
       >
-        <Folder size={14} className="text-amber-400/70 flex-shrink-0" />
+        <Folder size={14} className="text-accent flex-shrink-0" />
         <span className="truncate flex-1 text-left">{bookmark.title}</span>
         <ChevronDown
           size={12}
@@ -147,7 +147,7 @@ function BookmarkFolder({ bookmark, iconOnly }: { bookmark: BookmarkType; iconOn
         className={`flex items-center gap-1.5 rounded-full text-white/70 transition-colors hover:bg-white/10 hover:text-white ${iconOnly ? 'p-2' : 'px-3 py-1.5'}`}
         title={bookmark.title}
       >
-        <Folder size={14} className="text-amber-400/70" />
+        <Folder size={14} className="text-accent" />
         {!iconOnly && <span className="max-w-20 truncate text-sm">{bookmark.title}</span>}
         {!iconOnly && <ChevronDown size={12} className={`text-white/40 transition-transform ${isOpen ? 'rotate-180' : ''}`} />}
       </button>

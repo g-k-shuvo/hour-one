@@ -65,7 +65,7 @@ This document tracks the implementation progress of all features for the Hour On
 |---|---------|--------|-------|-------|
 | 4.1 | Vision Board | ⏳ | - | Custom image uploads |
 | 4.2 | Multiple Workspaces | ⏳ | - | Context switching |
-| 4.3 | Custom Themes | ⏳ | - | Dark mode, color customization |
+| 4.3 | Custom Themes | ✅ | `ThemeProvider.tsx`, `settingsStore.ts`, CSS | Light/dark/system mode, 8 accent colors |
 | 4.4 | Widget Drag & Drop | ⏳ | - | Repositionable widgets |
 
 ### Productivity Tools
@@ -141,11 +141,11 @@ This document tracks the implementation progress of all features for the Hour On
 | Phase 1: Foundation | 6 | 6 | 0 | 0 |
 | Phase 2: Free Features | 11 | 11 | 0 | 0 |
 | Phase 3: Pro Infrastructure | 5 | 0 | 0 | 5 |
-| Phase 4: Pro Features | 21 | 1 | 0 | 20 |
+| Phase 4: Pro Features | 21 | 2 | 0 | 19 |
 | Phase 5: Polish & Launch | 10 | 2 | 0 | 8 |
-| **Total** | **53** | **20** | **0** | **33** |
+| **Total** | **53** | **21** | **0** | **32** |
 
-**Overall Progress: 38% Complete (20/53 features)**
+**Overall Progress: 40% Complete (21/53 features)**
 
 ---
 
@@ -210,11 +210,11 @@ src/
 
 ## Next Up (Recommended Order)
 
-1. **4.3 Custom Themes** - Dark mode, color customization (partial - themeMode exists)
-2. **4.21 Soundscapes** - Ambient sounds for focus
-3. **4.11 Tab Stash** - Save/restore tab sessions (unique browser feature)
-4. **4.6 Advanced To-Do Lists** - Multiple lists, priorities, due dates
-5. **4.12 World Clocks** - Multiple timezone display
+1. **4.21 Soundscapes** - Ambient sounds for focus
+2. **4.11 Tab Stash** - Save/restore tab sessions (unique browser feature)
+3. **4.6 Advanced To-Do Lists** - Multiple lists, priorities, due dates
+4. **4.12 World Clocks** - Multiple timezone display
+5. **4.13 Countdown Timers** - Event countdowns
 
 ---
 

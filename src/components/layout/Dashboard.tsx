@@ -277,7 +277,7 @@ export function Dashboard() {
                 label="Todo List"
               />
               {incompleteTasks > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-500 px-1.5 text-xs font-medium text-white">
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-medium text-white">
                   {incompleteTasks}
                 </span>
               )}

@@ -53,7 +53,7 @@ function AnalogClock({ time, variant }: AnalogClockProps) {
           />
           {/* Second hand */}
           <div
-            className="absolute w-0.5 h-20 bg-red-400 rounded-full"
+            className="absolute w-0.5 h-20 bg-accent rounded-full"
             style={{ bottom: '50%', left: '50%', transformOrigin: '50% 100%', transform: `translateX(-50%) rotate(${secondDeg}deg)` }}
           />
           {/* Center dot */}
@@ -115,11 +115,11 @@ function AnalogClock({ time, variant }: AnalogClockProps) {
           />
           {/* Second hand */}
           <div
-            className="absolute w-[1px] h-[76px] bg-cyan-400 rounded-full"
+            className="absolute w-[1px] h-[76px] bg-accent rounded-full"
             style={{ bottom: '50%', left: '50%', transformOrigin: '50% 100%', transform: `translateX(-50%) rotate(${secondDeg}deg)` }}
           />
           {/* Center dot */}
-          <div className="absolute w-2.5 h-2.5 bg-cyan-400 rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-lg shadow-cyan-400/50" />
+          <div className="absolute w-2.5 h-2.5 bg-accent rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-lg shadow-accent/50" />
         </div>
       </div>
     );
@@ -162,11 +162,11 @@ function AnalogClock({ time, variant }: AnalogClockProps) {
           />
           {/* Second hand */}
           <div
-            className="absolute w-0.5 h-[70px] bg-amber-400 rounded-full"
+            className="absolute w-0.5 h-[70px] bg-accent rounded-full"
             style={{ bottom: '50%', left: '50%', transformOrigin: '50% 100%', transform: `translateX(-50%) rotate(${secondDeg}deg)` }}
           />
           {/* Center dot */}
-          <div className="absolute w-3 h-3 bg-amber-400 rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute w-3 h-3 bg-accent rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
         </div>
       </div>
     );
@@ -189,7 +189,7 @@ function AnalogClock({ time, variant }: AnalogClockProps) {
           />
           {/* Second dot - smooth orbiting using milliseconds */}
           <div
-            className="absolute w-2.5 h-2.5 bg-red-400 rounded-full"
+            className="absolute w-2.5 h-2.5 bg-accent rounded-full"
             style={{
               top: '14px',
               left: '50%',
@@ -241,7 +241,7 @@ function AnalogClock({ time, variant }: AnalogClockProps) {
         />
         {/* Second hand */}
         <div
-          className="absolute w-0.5 h-[64px] bg-rose-400 rounded-full"
+          className="absolute w-0.5 h-[64px] bg-accent rounded-full"
           style={{ bottom: '50%', left: '50%', transformOrigin: '50% 100%', transform: `translateX(-50%) rotate(${secondDeg}deg)` }}
         />
         {/* Center dot */}
