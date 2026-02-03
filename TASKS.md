@@ -66,7 +66,7 @@ This document tracks the implementation progress of all features for the Hour On
 | 4.1 | Vision Board | ⏳ | - | Custom image uploads |
 | 4.2 | Multiple Workspaces | ⏳ | - | Context switching |
 | 4.3 | Custom Themes | ✅ | `ThemeProvider.tsx`, `settingsStore.ts`, CSS | Light/dark/system mode, 8 accent colors |
-| 4.4 | Widget Drag & Drop | ⏳ | - | Repositionable widgets |
+| 4.4 | Widget Drag & Drop | ✅ | `DraggableWidget.tsx`, `layoutStore.ts` | Reorder center widgets (Clock, Greeting, Focus) via drag & drop |
 
 ### Productivity Tools
 
@@ -218,10 +218,9 @@ src/
 
 ## Next Up (Recommended Order)
 
-1. **4.4 Widget Drag & Drop** - Repositionable widgets
-2. **4.7 Autofocus Mode** - Sequential task focus
-3. **4.10 Balance Mode** - Work-life balance tracking
-4. **4.9 Metrics Dashboard** - Productivity analytics
+1. **4.7 Autofocus Mode** - Sequential task focus
+2. **4.10 Balance Mode** - Work-life balance tracking
+3. **4.9 Metrics Dashboard** - Productivity analytics
 
 ---
 
