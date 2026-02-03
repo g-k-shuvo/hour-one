@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { chromeStorage } from '@/lib/chromeStorage';
 
 export type FocusModePhase =
   | 'idle'           // Normal mode
@@ -45,6 +46,9 @@ interface FocusSessionState {
 
   // Settings
   settings: TimerSettings;
+
+  // Internal flag to prevent double completion
+  _completionInProgress: boolean;
 
   // Actions
   enterFocusMode: (focusTask: string) => void;
@@ -127,30 +131,64 @@ export const getCelebrationMessage = (totalSeconds: number) => {
   }
 };
 
-// Chrome storage adapter
-const chromeStorage = {
-  getItem: async (name: string): Promise<string | null> => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      const result = await chrome.storage.local.get(name);
-      return result[name] ?? null;
+// Timer completion sound (base64 encoded short beep)
+const TIMER_SOUND_DATA = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp2LdWZuc4GAgnZoZGyChpGOgXBkb36KlJKFc2dueYeQj4VyZ299iZKQhHFncH6JkY+Dcmhwf4qRjoNzaXGAi5GPg3NpcYCLkY6Dc2lxgIuRjoNzaXGAi5GOg3NpcYCKkY6Dc2lxgIqRjoNzaXGAipGOg3NpcYCKkY6Dc2lwgIqRjoNzaXCAipGOg3NpcICKkY6Dc2lwgIqRjoNzaXCAipGOg3NpcICKkY6DcmhwgIqQjYNyaHB/io+MgnJncH6Jj4uBcWZvfYiNioFwZW58h4yJgG9kbXuGi4d+bmNseYSJhn1sYmt4goaEe2phaniAhIJ5aGBod36Bfndl';
+
+/**
+ * Play the timer completion sound with proper error handling
+ */
+function playTimerSound(): Promise<void> {
+  return new Promise((resolve) => {
+    try {
+      const audio = new Audio(TIMER_SOUND_DATA);
+      audio.volume = 0.5;
+      audio.play()
+        .then(() => resolve())
+        .catch((error) => {
+          // Log autoplay failures (common when tab is not focused)
+          if (import.meta.env.DEV) {
+            console.warn('[Timer Sound] Playback failed (possibly due to autoplay policy):', error.message);
+          }
+          resolve();
+        });
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[Timer Sound] Audio creation failed:', error);
+      }
+      resolve();
     }
-    return localStorage.getItem(name);
-  },
-  setItem: async (name: string, value: string): Promise<void> => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.set({ [name]: value });
-    } else {
-      localStorage.setItem(name, value);
+  });
+}
+
+/**
+ * Request notification permission and show notification
+ * Only requests permission if not already determined
+ */
+async function showTimerNotification(message: string) {
+  if (!('Notification' in window)) return;
+
+  try {
+    // Check current permission state first
+    let permission = Notification.permission;
+
+    // Only request if not yet determined
+    if (permission === 'default') {
+      permission = await Notification.requestPermission();
     }
-  },
-  removeItem: async (name: string): Promise<void> => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.remove(name);
-    } else {
-      localStorage.removeItem(name);
+
+    if (permission === 'granted') {
+      new Notification('Timer Complete!', {
+        body: message,
+        icon: '/icons/icon-128.svg',
+        tag: 'timer-complete', // Prevents duplicate notifications
+      });
     }
-  },
-};
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.warn('[Notification] Failed to show notification:', error);
+    }
+  }
+}
 
 export const useFocusSessionStore = create<FocusSessionState>()(
   persist(
@@ -167,6 +205,7 @@ export const useFocusSessionStore = create<FocusSessionState>()(
       totalSessionSeconds: 0,
       currentFocusTask: '',
       settings: DEFAULT_SETTINGS,
+      _completionInProgress: false,
 
       enterFocusMode: (focusTask: string) => {
         const { settings } = get();
@@ -181,6 +220,7 @@ export const useFocusSessionStore = create<FocusSessionState>()(
           initialTimerSeconds: initialSeconds,
           pomodoroPhase: 'focus',
           isTimerRunning: false,
+          _completionInProgress: false,
         });
       },
 
@@ -189,39 +229,51 @@ export const useFocusSessionStore = create<FocusSessionState>()(
       },
 
       exitFocusMode: () => {
-        const { isTimerRunning } = get();
-        if (isTimerRunning) {
-          get().pauseTimer();
-        }
-        get().updateSessionTime();
-        set({ phase: 'exiting' });
+        // Use state callback to avoid stale state
+        set((state) => {
+          if (state.isTimerRunning) {
+            // Will pause timer as part of this update
+          }
+          // Update session time before showing celebration
+          const totalSeconds = state.sessionStartTime
+            ? Math.floor((Date.now() - state.sessionStartTime) / 1000)
+            : state.totalSessionSeconds;
+
+          return {
+            phase: 'exiting',
+            isTimerRunning: false,
+            totalSessionSeconds: totalSeconds,
+          };
+        });
       },
 
       setTimerMode: (mode: TimerMode) => {
-        const { isTimerRunning, settings } = get();
-        if (isTimerRunning) return; // Don't allow mode change while timer is running
+        set((state) => {
+          if (state.isTimerRunning) return state; // Don't allow mode change while timer is running
 
-        const initialSeconds = mode === 'pomodoro' ? settings.focusDuration * 60 : 0;
-        set({
-          timerMode: mode,
-          timerSeconds: initialSeconds,
-          initialTimerSeconds: initialSeconds,
-          pomodoroPhase: 'focus',
+          const initialSeconds = mode === 'pomodoro' ? state.settings.focusDuration * 60 : 0;
+          return {
+            timerMode: mode,
+            timerSeconds: initialSeconds,
+            initialTimerSeconds: initialSeconds,
+            pomodoroPhase: 'focus',
+          };
         });
       },
 
       setPomodoroPhase: (phase: PomodoroPhase) => {
-        const { isTimerRunning, settings } = get();
-        if (isTimerRunning) return; // Don't allow phase change while timer is running
+        set((state) => {
+          if (state.isTimerRunning) return state; // Don't allow phase change while timer is running
 
-        const newSeconds = phase === 'focus'
-          ? settings.focusDuration * 60
-          : settings.breakDuration * 60;
+          const newSeconds = phase === 'focus'
+            ? state.settings.focusDuration * 60
+            : state.settings.breakDuration * 60;
 
-        set({
-          pomodoroPhase: phase,
-          timerSeconds: newSeconds,
-          initialTimerSeconds: newSeconds,
+          return {
+            pomodoroPhase: phase,
+            timerSeconds: newSeconds,
+            initialTimerSeconds: newSeconds,
+          };
         });
       },
 
@@ -234,154 +286,181 @@ export const useFocusSessionStore = create<FocusSessionState>()(
       },
 
       resetTimer: () => {
-        const { timerMode, pomodoroPhase, settings } = get();
-        let newSeconds = 0;
-        let initialSeconds = 0;
+        set((state) => {
+          let newSeconds = 0;
+          let initialSeconds = 0;
 
-        if (timerMode === 'pomodoro') {
-          newSeconds = pomodoroPhase === 'focus'
-            ? settings.focusDuration * 60
-            : settings.breakDuration * 60;
-          initialSeconds = newSeconds;
-        }
+          if (state.timerMode === 'pomodoro') {
+            newSeconds = state.pomodoroPhase === 'focus'
+              ? state.settings.focusDuration * 60
+              : state.settings.breakDuration * 60;
+            initialSeconds = newSeconds;
+          }
 
-        set({
-          timerSeconds: newSeconds,
-          initialTimerSeconds: initialSeconds,
-          isTimerRunning: false,
+          return {
+            timerSeconds: newSeconds,
+            initialTimerSeconds: initialSeconds,
+            isTimerRunning: false,
+          };
         });
       },
 
       tick: () => {
-        const { timerMode, timerSeconds, isTimerRunning, settings } = get();
+        // Use state callback pattern to avoid race conditions
+        set((state) => {
+          if (!state.isTimerRunning) return state;
 
-        if (!isTimerRunning) return;
+          // Update total session time
+          const totalSeconds = state.sessionStartTime
+            ? Math.floor((Date.now() - state.sessionStartTime) / 1000)
+            : state.totalSessionSeconds;
 
-        if (timerMode === 'countup') {
-          set({ timerSeconds: timerSeconds + 1 });
-        } else {
-          // Pomodoro mode - count down
-          if (timerSeconds > 0) {
-            set({ timerSeconds: timerSeconds - 1 });
-          } else {
-            // Timer completed
-            if (settings.soundEnabled) {
-              // Play sound (we'll add audio later)
-              try {
-                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp2LdWZuc4GAgnZoZGyChpGOgXBkb36KlJKFc2dueYeQj4VyZ299iZKQhHFncH6JkY+Dcmhwf4qRjoNzaXGAi5GPg3NpcYCLkY6Dc2lxgIuRjoNzaXGAi5GOg3NpcYCKkY6Dc2lxgIqRjoNzaXGAipGOg3NpcYCKkY6Dc2lwgIqRjoNzaXCAipGOg3NpcICKkY6Dc2lwgIqRjoNzaXCAipGOg3NpcICKkY6DcmhwgIqQjYNyaHB/io+MgnJncH6Jj4uBcWZvfYiNioFwZW58h4yJgG9kbXuGi4d+bmNseYSJhn1sYmt4goaEe2phaniAhIJ5aGBod36Bfndl');
-                audio.volume = 0.5;
-                audio.play().catch(() => {});
-              } catch {}
-            }
-            if (settings.notificationsEnabled && 'Notification' in window) {
-              Notification.requestPermission().then(permission => {
-                if (permission === 'granted') {
-                  new Notification('Timer Complete!', {
-                    body: get().pomodoroPhase === 'focus' ? 'Time for a break!' : 'Ready to focus again?',
-                    icon: '/icons/icon-128.svg'
-                  });
-                }
-              });
-            }
-            get().completePomodoroSession();
+          if (state.timerMode === 'countup') {
+            return {
+              timerSeconds: state.timerSeconds + 1,
+              totalSessionSeconds: totalSeconds,
+            };
           }
-        }
 
-        // Update total session time
-        get().updateSessionTime();
+          // Pomodoro mode - count down
+          if (state.timerSeconds > 1) {
+            return {
+              timerSeconds: state.timerSeconds - 1,
+              totalSessionSeconds: totalSeconds,
+            };
+          }
+
+          // Timer reaching 0 - handle completion
+          // Guard against double completion
+          if (state._completionInProgress || state.timerSeconds <= 0) {
+            return state;
+          }
+
+          // Set timer to 0 and mark completion in progress
+          // Actual completion will be handled after state update
+          return {
+            timerSeconds: 0,
+            totalSessionSeconds: totalSeconds,
+            _completionInProgress: true,
+          };
+        });
+
+        // Check if we need to complete the session (outside of set to avoid state callback issues)
+        const currentState = get();
+        if (currentState.timerSeconds === 0 && currentState._completionInProgress) {
+          // Play sound and show notification
+          if (currentState.settings.soundEnabled) {
+            playTimerSound();
+          }
+          if (currentState.settings.notificationsEnabled) {
+            const message = currentState.pomodoroPhase === 'focus'
+              ? 'Time for a break!'
+              : 'Ready to focus again?';
+            showTimerNotification(message);
+          }
+          // Complete the session
+          get().completePomodoroSession();
+        }
       },
 
       completePomodoroSession: () => {
-        const { pomodoroPhase, pomodorosCompleted, settings } = get();
+        set((state) => {
+          // Reset completion flag
+          const baseUpdate = { _completionInProgress: false };
 
-        if (pomodoroPhase === 'focus') {
-          // Completed a focus session
-          const breakSeconds = settings.breakDuration * 60;
-          set({
-            pomodorosCompleted: pomodorosCompleted + 1,
-            pomodoroPhase: 'break',
-            timerSeconds: breakSeconds,
-            initialTimerSeconds: breakSeconds,
-            isTimerRunning: settings.autoStartTimers,
-          });
-        } else {
-          // Completed a break
-          const focusSeconds = settings.focusDuration * 60;
-          set({
-            pomodoroPhase: 'focus',
-            timerSeconds: focusSeconds,
-            initialTimerSeconds: focusSeconds,
-            isTimerRunning: settings.autoStartTimers,
-          });
-        }
+          if (state.pomodoroPhase === 'focus') {
+            // Completed a focus session
+            const breakSeconds = state.settings.breakDuration * 60;
+            return {
+              ...baseUpdate,
+              pomodorosCompleted: state.pomodorosCompleted + 1,
+              pomodoroPhase: 'break' as PomodoroPhase,
+              timerSeconds: breakSeconds,
+              initialTimerSeconds: breakSeconds,
+              isTimerRunning: state.settings.autoStartTimers,
+            };
+          } else {
+            // Completed a break
+            const focusSeconds = state.settings.focusDuration * 60;
+            return {
+              ...baseUpdate,
+              pomodoroPhase: 'focus' as PomodoroPhase,
+              timerSeconds: focusSeconds,
+              initialTimerSeconds: focusSeconds,
+              isTimerRunning: state.settings.autoStartTimers,
+            };
+          }
+        });
       },
 
       addMinutes: (minutes: number) => {
-        const { timerSeconds, initialTimerSeconds } = get();
-        const newSeconds = timerSeconds + (minutes * 60);
-        const newInitial = initialTimerSeconds + (minutes * 60);
-        set({
-          timerSeconds: Math.max(0, newSeconds),
-          initialTimerSeconds: Math.max(0, newInitial),
+        set((state) => {
+          const newSeconds = state.timerSeconds + (minutes * 60);
+          const newInitial = state.initialTimerSeconds + (minutes * 60);
+          return {
+            timerSeconds: Math.max(0, newSeconds),
+            initialTimerSeconds: Math.max(0, newInitial),
+          };
         });
       },
 
       completeCurrentTimer: () => {
-        set({ timerSeconds: 0 });
+        set({ timerSeconds: 0, _completionInProgress: true });
         get().completePomodoroSession();
       },
 
       updateSettings: (newSettings: Partial<TimerSettings>) => {
-        const { settings, timerMode, pomodoroPhase, isTimerRunning } = get();
-        const updatedSettings = { ...settings, ...newSettings };
+        set((state) => {
+          const updatedSettings = { ...state.settings, ...newSettings };
 
-        // If duration changed and timer is not running, update timer
-        if (!isTimerRunning && timerMode === 'pomodoro') {
-          if (newSettings.focusDuration !== undefined && pomodoroPhase === 'focus') {
-            const newSeconds = newSettings.focusDuration * 60;
-            set({
-              settings: updatedSettings,
-              timerSeconds: newSeconds,
-              initialTimerSeconds: newSeconds,
-            });
-            return;
+          // If duration changed and timer is not running, update timer
+          if (!state.isTimerRunning && state.timerMode === 'pomodoro') {
+            if (newSettings.focusDuration !== undefined && state.pomodoroPhase === 'focus') {
+              const newSeconds = newSettings.focusDuration * 60;
+              return {
+                settings: updatedSettings,
+                timerSeconds: newSeconds,
+                initialTimerSeconds: newSeconds,
+              };
+            }
+            if (newSettings.breakDuration !== undefined && state.pomodoroPhase === 'break') {
+              const newSeconds = newSettings.breakDuration * 60;
+              return {
+                settings: updatedSettings,
+                timerSeconds: newSeconds,
+                initialTimerSeconds: newSeconds,
+              };
+            }
           }
-          if (newSettings.breakDuration !== undefined && pomodoroPhase === 'break') {
-            const newSeconds = newSettings.breakDuration * 60;
-            set({
-              settings: updatedSettings,
-              timerSeconds: newSeconds,
-              initialTimerSeconds: newSeconds,
-            });
-            return;
-          }
-        }
 
-        set({ settings: updatedSettings });
+          return { settings: updatedSettings };
+        });
       },
 
       updateSessionTime: () => {
-        const { sessionStartTime } = get();
-        if (sessionStartTime) {
-          const totalSeconds = Math.floor((Date.now() - sessionStartTime) / 1000);
-          set({ totalSessionSeconds: totalSeconds });
-        }
+        set((state) => {
+          if (state.sessionStartTime) {
+            const totalSeconds = Math.floor((Date.now() - state.sessionStartTime) / 1000);
+            return { totalSessionSeconds: totalSeconds };
+          }
+          return state;
+        });
       },
 
       resetSession: () => {
-        const { settings } = get();
-        set({
+        set((state) => ({
           phase: 'idle',
           timerMode: 'pomodoro',
           pomodoroPhase: 'focus',
           pomodorosCompleted: 0,
           isTimerRunning: false,
-          timerSeconds: settings.focusDuration * 60,
-          initialTimerSeconds: settings.focusDuration * 60,
+          timerSeconds: state.settings.focusDuration * 60,
+          initialTimerSeconds: state.settings.focusDuration * 60,
           sessionStartTime: null,
           totalSessionSeconds: 0,
           currentFocusTask: '',
-        });
+          _completionInProgress: false,
+        }));
       },
     }),
     {
@@ -390,6 +469,10 @@ export const useFocusSessionStore = create<FocusSessionState>()(
       partialize: (state) => ({
         settings: state.settings,
         timerMode: state.timerMode,
+        // Persist session data for recovery after browser close
+        sessionStartTime: state.sessionStartTime,
+        totalSessionSeconds: state.totalSessionSeconds,
+        pomodorosCompleted: state.pomodorosCompleted,
       }),
     }
   )

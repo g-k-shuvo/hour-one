@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckSquare, ExternalLink, MapPin, Search, Target, SlidersHorizontal, Play } from 'lucide-react';
+import { CheckSquare, ExternalLink, MapPin, Search, Target, SlidersHorizontal, Play, Settings } from 'lucide-react';
 import { Clock } from '@/components/widgets/Clock';
 import { Greeting } from '@/components/widgets/Greeting';
 import { Focus } from '@/components/widgets/Focus';
@@ -63,6 +63,9 @@ export function Dashboard() {
       {/* Focus Mode Overlay */}
       <FocusModeOverlay />
 
+      {/* Settings Sidebar - rendered outside main to work during focus mode */}
+      <SettingsSidebar />
+
       {/* Main Content - hidden during focus mode */}
       <main
         className={`relative z-10 flex min-h-screen flex-col text-white transition-opacity duration-500 ${
@@ -111,7 +114,11 @@ export function Dashboard() {
               onClick={() => enterFocusMode(focus)}
               label="Focus Mode"
             />
-            <SettingsSidebar />
+            <IconButton
+              icon={Settings}
+              onClick={() => window.dispatchEvent(new CustomEvent('openSettings', { detail: {} }))}
+              label="Settings"
+            />
           </div>
 
           {/* Top Right - Compact Weather */}
@@ -281,7 +288,7 @@ export function Dashboard() {
           position="bottom-right"
           title="Tasks"
           maxWidth="max-w-sm"
-          headerActions={<TodoListHeaderActions />}
+          headerActions={<TodoListHeaderActions onClose={() => setShowTodos(false)} />}
         >
           <TodoList />
         </PopupPanel>
@@ -293,7 +300,7 @@ export function Dashboard() {
           position="top-left"
           title="Quick Links"
           maxWidth="max-w-sm"
-          headerActions={<QuickLinksHeaderActions />}
+          headerActions={<QuickLinksHeaderActions onClose={() => setShowLinks(false)} />}
         >
           <QuickLinks />
         </PopupPanel>

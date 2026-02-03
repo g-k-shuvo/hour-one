@@ -12,13 +12,15 @@ interface PopupPanelProps {
   maxWidth?: string;
   headerActions?: ReactNode;
   children: ReactNode;
+  /** Whether to show an arrow pointing to the corner */
+  showArrow?: boolean;
 }
 
 const positionClasses: Record<Position, string> = {
-  'top-left': 'items-start justify-start',
-  'top-right': 'items-start justify-end',
-  'bottom-left': 'items-end justify-start',
-  'bottom-right': 'items-end justify-end',
+  'top-left': 'items-start justify-start pt-14', // Offset below top bar buttons
+  'top-right': 'items-start justify-end pt-14',
+  'bottom-left': 'items-end justify-start pb-14', // Offset above bottom bar buttons
+  'bottom-right': 'items-end justify-end pb-14',
 };
 
 const slideAnimations: Record<Position, string> = {
@@ -26,6 +28,26 @@ const slideAnimations: Record<Position, string> = {
   'top-right': 'slideDown',
   'bottom-left': 'slideUp',
   'bottom-right': 'slideUp',
+};
+
+// Arrow configurations for each position (pointing to the trigger button location)
+const arrowConfigs: Record<Position, { className: string; style: React.CSSProperties }> = {
+  'top-left': {
+    className: 'absolute -top-1.5 left-4 w-3 h-3 rotate-45 bg-gray-900/95 rounded-tl-sm',
+    style: { boxShadow: '-1px -1px 1px rgba(0,0,0,0.1)' },
+  },
+  'top-right': {
+    className: 'absolute -top-1.5 right-4 w-3 h-3 rotate-45 bg-gray-900/95 rounded-tl-sm',
+    style: { boxShadow: '-1px -1px 1px rgba(0,0,0,0.1)' },
+  },
+  'bottom-left': {
+    className: 'absolute -bottom-1.5 left-4 w-3 h-3 rotate-45 bg-gray-900/95 rounded-br-sm',
+    style: { boxShadow: '1px 1px 1px rgba(0,0,0,0.1)' },
+  },
+  'bottom-right': {
+    className: 'absolute -bottom-1.5 right-6 w-3 h-3 rotate-45 bg-gray-900/95 rounded-br-sm',
+    style: { boxShadow: '1px 1px 1px rgba(0,0,0,0.1)' },
+  },
 };
 
 export function PopupPanel({
@@ -36,10 +58,12 @@ export function PopupPanel({
   maxWidth = 'max-w-sm',
   headerActions,
   children,
+  showArrow = true,
 }: PopupPanelProps) {
   if (!isOpen) return null;
 
   const slideAnimation = slideAnimations[position];
+  const arrowConfig = arrowConfigs[position];
 
   return createPortal(
     <div
@@ -58,6 +82,9 @@ export function PopupPanel({
         style={{ animation: `popup${slideAnimation} 200ms ease-out` }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Arrow */}
+        {showArrow && <div className={arrowConfig.className} style={arrowConfig.style} />}
+
         {/* Header with title, actions, and close button */}
         {(title || headerActions) && (
           <div className="flex items-center justify-between p-4 pb-0">

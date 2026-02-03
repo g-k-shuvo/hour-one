@@ -311,8 +311,11 @@ export function TodoList() {
 }
 
 // Header Actions component for PopupPanel
-export function TodoListHeaderActions() {
+export function TodoListHeaderActions({ onClose }: { onClose?: () => void }) {
   const handleOpenSettings = () => {
+    // Close the popup first
+    onClose?.();
+    // Then open settings
     window.dispatchEvent(
       new CustomEvent('openSettings', { detail: { section: 'tasks' } })
     );
@@ -343,8 +346,10 @@ function TaskItem({ task, folders, onToggle, onDelete, onEdit, onMove }: TaskIte
   const [showMenu, setShowMenu] = useState(false);
   const [showMoveMenu, setShowMoveMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const [submenuPosition, setSubmenuPosition] = useState({ top: 0, left: 0, openLeft: false });
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const moveButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleCloseMenu = useCallback(() => {
     setShowMenu(false);
@@ -428,9 +433,13 @@ function TaskItem({ task, folders, onToggle, onDelete, onEdit, onMove }: TaskIte
       {showMenu && createPortal(
         <div
           ref={menuRef}
-          className="fixed z-[100] min-w-[140px] rounded-lg border border-white/10 bg-gray-900/95 py-1 shadow-xl backdrop-blur-sm"
-          style={{ top: menuPosition.top, left: menuPosition.left }}
+          className="fixed z-[100] min-w-[140px] rounded-lg border border-white/10 bg-gray-900/95 py-1 shadow-xl backdrop-blur-sm overflow-visible"
+          style={{ top: menuPosition.top + 4, left: menuPosition.left }}
         >
+          {/* Arrow pointing up */}
+          <div
+            className="absolute -top-1.5 right-3 w-3 h-3 rotate-45 bg-gray-900/95 border-l border-t border-white/10 rounded-tl-sm"
+          />
           <button
             onClick={() => {
               onEdit();
@@ -443,13 +452,25 @@ function TaskItem({ task, folders, onToggle, onDelete, onEdit, onMove }: TaskIte
           </button>
 
           {/* Move to submenu */}
-          <div
-            className="relative"
-            onMouseEnter={() => setShowMoveMenu(true)}
-            onMouseLeave={() => setShowMoveMenu(false)}
-          >
+          <div className="relative">
             <button
-              className="flex w-full items-center justify-between gap-2 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10"
+              ref={moveButtonRef}
+              onClick={() => {
+                if (moveButtonRef.current) {
+                  const rect = moveButtonRef.current.getBoundingClientRect();
+                  const spaceRight = window.innerWidth - rect.right;
+                  const estimatedWidth = 130;
+                  const openLeft = spaceRight < estimatedWidth;
+
+                  setSubmenuPosition({
+                    top: rect.top,
+                    left: openLeft ? rect.left - estimatedWidth - 4 : rect.right + 4,
+                    openLeft,
+                  });
+                }
+                setShowMoveMenu(!showMoveMenu);
+              }}
+              className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 ${showMoveMenu ? 'bg-white/10' : ''}`}
             >
               <div className="flex items-center gap-2">
                 <ArrowRight size={14} />
@@ -458,9 +479,22 @@ function TaskItem({ task, folders, onToggle, onDelete, onEdit, onMove }: TaskIte
               <ArrowRight size={12} className="opacity-50" />
             </button>
 
-            {/* Move submenu */}
-            {showMoveMenu && (
-              <div className="absolute left-full top-0 ml-1 min-w-[120px] rounded-lg border border-white/10 bg-gray-900/95 py-1 shadow-xl backdrop-blur-sm">
+            {/* Move submenu - rendered via portal */}
+            {showMoveMenu && createPortal(
+              <div
+                className="fixed z-[100] min-w-[120px] rounded-lg border border-white/10 bg-gray-900/95 py-1 shadow-xl backdrop-blur-sm overflow-visible"
+                style={{ top: submenuPosition.top, left: submenuPosition.left }}
+              >
+                {/* Arrow pointing toward parent menu */}
+                {submenuPosition.openLeft ? (
+                  <div
+                    className="absolute top-3 -right-1.5 w-3 h-3 rotate-45 bg-gray-900/95 border-r border-t border-white/10 rounded-tr-sm"
+                  />
+                ) : (
+                  <div
+                    className="absolute top-3 -left-1.5 w-3 h-3 rotate-45 bg-gray-900/95 border-l border-b border-white/10 rounded-bl-sm"
+                  />
+                )}
                 {moveableFolders.map((folder) => {
                   const IconComponent = FOLDER_ICONS[folder.icon] || Folder;
                   return (
@@ -469,6 +503,7 @@ function TaskItem({ task, folders, onToggle, onDelete, onEdit, onMove }: TaskIte
                       onClick={() => {
                         onMove(folder.id);
                         setShowMenu(false);
+                        setShowMoveMenu(false);
                       }}
                       className="flex w-full items-center gap-2 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10"
                       style={folder.color ? { color: folder.color } : undefined}
@@ -478,7 +513,8 @@ function TaskItem({ task, folders, onToggle, onDelete, onEdit, onMove }: TaskIte
                     </button>
                   );
                 })}
-              </div>
+              </div>,
+              document.body
             )}
           </div>
 

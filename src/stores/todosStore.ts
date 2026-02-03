@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Task, TaskFolder } from '@/types';
 import { SYSTEM_FOLDER_IDS } from '@/types';
+import { chromeStorage } from '@/lib/chromeStorage';
 
 // Default folders
 const DEFAULT_FOLDERS: TaskFolder[] = [
@@ -35,30 +36,58 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
-// Chrome storage adapter
-const chromeStorage = {
-  getItem: async (name: string): Promise<string | null> => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      const result = await chrome.storage.local.get(name);
-      return result[name] ?? null;
+/**
+ * Validate persisted state structure to prevent runtime crashes
+ */
+function validatePersistedState(data: unknown): data is Partial<TodosState> {
+  if (data === null || typeof data !== 'object') {
+    return false;
+  }
+
+  const state = data as Record<string, unknown>;
+
+  // Validate tasks array if present
+  if (state.tasks !== undefined) {
+    if (!Array.isArray(state.tasks)) return false;
+    // Basic validation of task structure
+    for (const task of state.tasks) {
+      if (typeof task !== 'object' || task === null) return false;
+      if (typeof (task as Record<string, unknown>).id !== 'string') return false;
+      if (typeof (task as Record<string, unknown>).text !== 'string') return false;
     }
-    return localStorage.getItem(name);
-  },
-  setItem: async (name: string, value: string): Promise<void> => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.set({ [name]: value });
-    } else {
-      localStorage.setItem(name, value);
+  }
+
+  // Validate folders array if present
+  if (state.folders !== undefined) {
+    if (!Array.isArray(state.folders)) return false;
+    for (const folder of state.folders) {
+      if (typeof folder !== 'object' || folder === null) return false;
+      if (typeof (folder as Record<string, unknown>).id !== 'string') return false;
+      if (typeof (folder as Record<string, unknown>).name !== 'string') return false;
     }
-  },
-  removeItem: async (name: string): Promise<void> => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.remove(name);
-    } else {
-      localStorage.removeItem(name);
-    }
-  },
-};
+  }
+
+  // Validate activeFolderId if present
+  if (state.activeFolderId !== undefined && typeof state.activeFolderId !== 'string') {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Sanitize task data to ensure all required fields exist
+ */
+function sanitizeTask(task: Record<string, unknown>): Task {
+  return {
+    id: typeof task.id === 'string' ? task.id : generateId(),
+    text: typeof task.text === 'string' ? task.text : '',
+    completed: typeof task.completed === 'boolean' ? task.completed : false,
+    createdAt: typeof task.createdAt === 'string' ? task.createdAt : new Date().toISOString(),
+    folderId: typeof task.folderId === 'string' ? task.folderId : SYSTEM_FOLDER_IDS.INBOX,
+    completedAt: typeof task.completedAt === 'string' ? task.completedAt : undefined,
+  };
+}
 
 export const useTodosStore = create<TodosState>()(
   persist(
@@ -230,19 +259,37 @@ export const useTodosStore = create<TodosState>()(
       version: 2,
       storage: createJSONStorage(() => chromeStorage),
       migrate: (persistedState: unknown, version: number) => {
-        const state = persistedState as Partial<TodosState>;
+        // Validate persisted state before processing
+        if (!validatePersistedState(persistedState)) {
+          if (import.meta.env.DEV) {
+            console.warn('[TodosStore] Invalid persisted state, using defaults');
+          }
+          return {
+            tasks: [],
+            folders: DEFAULT_FOLDERS,
+            activeFolderId: 'today',
+          };
+        }
+
+        const state = persistedState;
 
         if (version < 2) {
           // Migration from v1 to v2: add folders and folderId to tasks
-          const tasks = (state.tasks || []) as Array<Task & { folderId?: string }>;
+          const rawTasks = (state.tasks || []) as Array<Record<string, unknown>>;
+          const tasks = rawTasks.map(t => {
+            const sanitized = sanitizeTask(t);
+            // Set folder based on completion status if not already set
+            if (!t.folderId) {
+              sanitized.folderId = sanitized.completed ? SYSTEM_FOLDER_IDS.DONE : SYSTEM_FOLDER_IDS.INBOX;
+            }
+            return sanitized;
+          });
+
           return {
             ...state,
             folders: DEFAULT_FOLDERS,
             activeFolderId: 'today',
-            tasks: tasks.map(t => ({
-              ...t,
-              folderId: t.folderId || (t.completed ? SYSTEM_FOLDER_IDS.DONE : SYSTEM_FOLDER_IDS.INBOX),
-            })),
+            tasks,
           };
         }
 

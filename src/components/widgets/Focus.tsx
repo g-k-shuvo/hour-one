@@ -4,7 +4,7 @@ import { useFocusStore } from '@/stores/focusStore';
 import { useFocusSessionStore } from '@/stores/focusSessionStore';
 import { useTodosStore } from '@/stores/todosStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { Dropdown, DropdownItem } from '@/components/ui/Dropdown';
+import { AdaptiveDropdown, DropdownItem, DropdownContainer } from '@/components/ui/Dropdown';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import { SYSTEM_FOLDER_IDS } from '@/types';
 
@@ -17,10 +17,7 @@ export function Focus() {
   const [inputValue, setInputValue] = useState(focus);
   const [showMenu, setShowMenu] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const menuContainerRef = useRef<HTMLDivElement>(null);
-
-  const handleCloseMenu = useCallback(() => setShowMenu(false), []);
-  useClickOutside(menuContainerRef, handleCloseMenu, showMenu);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   // Get the first incomplete task from Today folder
   const topTodayTask = tasks.find(
@@ -184,8 +181,13 @@ export function Focus() {
       </div>
 
       {/* Three dots menu - absolute positioned on right */}
-      <div ref={menuContainerRef} className="absolute -right-8 top-1/2 -translate-y-1/2">
+      <DropdownContainer
+        isOpen={showMenu}
+        onClose={() => setShowMenu(false)}
+        className="absolute -right-8 top-1/2 -translate-y-1/2"
+      >
         <button
+          ref={menuButtonRef}
           onClick={() => setShowMenu(!showMenu)}
           className={`rounded-full p-1 transition-all hover:bg-white/10 hover:text-white/60 ${
             showMenu ? 'opacity-100 text-white/60' : 'opacity-0 group-hover:opacity-100 text-white/40'
@@ -196,19 +198,17 @@ export function Focus() {
         </button>
 
         {/* Dropdown menu */}
-        {showMenu && (
-          <Dropdown position="right" width="w-32">
-            <DropdownItem onClick={handleEdit}>
-              <Edit3 size={14} />
-              <span>Edit</span>
-            </DropdownItem>
-            <DropdownItem onClick={handleClear}>
-              <X size={14} />
-              <span>Clear</span>
-            </DropdownItem>
-          </Dropdown>
-        )}
-      </div>
+        <AdaptiveDropdown triggerRef={menuButtonRef} isOpen={showMenu} width="w-32" preferredPosition="right">
+          <DropdownItem onClick={handleEdit}>
+            <Edit3 size={14} />
+            <span>Edit</span>
+          </DropdownItem>
+          <DropdownItem onClick={handleClear}>
+            <X size={14} />
+            <span>Clear</span>
+          </DropdownItem>
+        </AdaptiveDropdown>
+      </DropdownContainer>
 
       {/* Completed message */}
       {isCompleted && (

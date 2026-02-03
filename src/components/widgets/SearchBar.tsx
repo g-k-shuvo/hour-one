@@ -1,8 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Search, MoreHorizontal } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { Dropdown, DropdownItem, DropdownLabel } from '@/components/ui/Dropdown';
-import { useClickOutside } from '@/hooks/useClickOutside';
+import { AdaptiveDropdown, DropdownItem, DropdownLabel, DropdownContainer } from '@/components/ui/Dropdown';
 
 // Search engine configurations with icons
 const SEARCH_ENGINES = {
@@ -63,10 +62,7 @@ export function SearchBar() {
   const [isFocused, setIsFocused] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const menuContainerRef = useRef<HTMLDivElement>(null);
-
-  const handleCloseMenu = useCallback(() => setShowMenu(false), []);
-  useClickOutside(menuContainerRef, handleCloseMenu, showMenu);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   const engine = SEARCH_ENGINES[searchProvider];
 
@@ -123,8 +119,13 @@ export function SearchBar() {
       </form>
 
       {/* Three dots menu button - absolute positioned on right */}
-      <div ref={menuContainerRef} className="absolute -right-8 top-1/2 -translate-y-1/2">
+      <DropdownContainer
+        isOpen={showMenu}
+        onClose={() => setShowMenu(false)}
+        className="absolute -right-8 top-1/2 -translate-y-1/2"
+      >
         <button
+          ref={menuButtonRef}
           onClick={() => setShowMenu(!showMenu)}
           className={`rounded-full p-1.5 transition-all hover:bg-white/10 hover:text-white/60 ${
             showMenu ? 'opacity-100 text-white/60' : 'opacity-0 group-hover:opacity-100 text-white/40'
@@ -135,25 +136,23 @@ export function SearchBar() {
         </button>
 
         {/* Dropdown menu */}
-        {showMenu && (
-          <Dropdown position="right" width="w-36">
-            <DropdownLabel>Search with</DropdownLabel>
-            {(['google', 'bing', 'duckduckgo', 'ecosia'] as const).map((eng) => (
-              <DropdownItem
-                key={eng}
-                onClick={() => {
-                  setSearchProvider(eng);
-                  setShowMenu(false);
-                }}
-                active={searchProvider === eng}
-              >
-                <span className="scale-75">{SEARCH_ENGINES[eng].icon}</span>
-                <span>{SEARCH_ENGINES[eng].name}</span>
-              </DropdownItem>
-            ))}
-          </Dropdown>
-        )}
-      </div>
+        <AdaptiveDropdown triggerRef={menuButtonRef} isOpen={showMenu} width="w-36" preferredPosition="right">
+          <DropdownLabel>Search with</DropdownLabel>
+          {(['google', 'bing', 'duckduckgo', 'ecosia'] as const).map((eng) => (
+            <DropdownItem
+              key={eng}
+              onClick={() => {
+                setSearchProvider(eng);
+                setShowMenu(false);
+              }}
+              active={searchProvider === eng}
+            >
+              <span className="scale-75">{SEARCH_ENGINES[eng].icon}</span>
+              <span>{SEARCH_ENGINES[eng].name}</span>
+            </DropdownItem>
+          ))}
+        </AdaptiveDropdown>
+      </DropdownContainer>
     </div>
   );
 }

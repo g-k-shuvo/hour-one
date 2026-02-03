@@ -6,6 +6,8 @@ import {
   preloadTomorrowBackground,
   getRandomBackground,
 } from '@/services/backgroundService';
+import { chromeStorage } from '@/lib/chromeStorage';
+import { getTodayDate } from '@/lib/dateUtils';
 
 interface BackgroundState {
   background: BackgroundImage | null;
@@ -17,36 +19,6 @@ interface BackgroundState {
   loadBackground: () => Promise<void>;
   refreshBackground: () => void;
 }
-
-// Get today's date as YYYY-MM-DD
-function getTodayDate(): string {
-  return new Date().toISOString().split('T')[0];
-}
-
-// Chrome storage adapter
-const chromeStorage = {
-  getItem: async (name: string): Promise<string | null> => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      const result = await chrome.storage.local.get(name);
-      return result[name] ?? null;
-    }
-    return localStorage.getItem(name);
-  },
-  setItem: async (name: string, value: string): Promise<void> => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.set({ [name]: value });
-    } else {
-      localStorage.setItem(name, value);
-    }
-  },
-  removeItem: async (name: string): Promise<void> => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.remove(name);
-    } else {
-      localStorage.removeItem(name);
-    }
-  },
-};
 
 export const useBackgroundStore = create<BackgroundState>()(
   persist(

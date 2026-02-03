@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { X, Play, Pause, RotateCcw, MoreHorizontal, Check, Plus, Clock, Bell, Eye, Volume2, Timer, ArrowUpDown, Edit3 } from 'lucide-react';
+import { X, Play, Pause, RotateCcw, MoreHorizontal, Check, Plus, Clock, Bell, Eye, Volume2, Timer, ArrowUpDown, Edit3, ExternalLink, CheckSquare, Settings } from 'lucide-react';
 import {
   useFocusSessionStore,
   getRandomFocusQuote,
@@ -8,6 +8,12 @@ import {
 import { useFocusStore } from '@/stores/focusStore';
 import { useDropdownTheme } from '@/hooks/useTheme';
 import { useClickOutside } from '@/hooks/useClickOutside';
+import { IconButton } from '@/components/ui/IconButton';
+import { PopupPanel } from '@/components/ui/PopupPanel';
+import { TodoList, TodoListHeaderActions } from '@/components/widgets/TodoList';
+import { QuickLinks, QuickLinksHeaderActions } from '@/components/widgets/QuickLinks';
+import { useTodosStore } from '@/stores/todosStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 // Format seconds to MM:SS or HH:MM:SS
 function formatTime(seconds: number, hideSeconds: boolean = false): string {
@@ -248,7 +254,7 @@ function ArcProgress({ progress, size = 320, strokeWidth = 4, children }: {
 }
 
 // Timer settings dropdown for Pomodoro
-function PomodoroSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => void; onSwitchMode: () => void }) {
+function PomodoroSettingsDropdown({ onClose, onSwitchMode, triggerRef }: { onClose: () => void; onSwitchMode: () => void; triggerRef?: React.RefObject<HTMLElement | null> }) {
   const {
     settings,
     updateSettings,
@@ -258,9 +264,42 @@ function PomodoroSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => vo
     isTimerRunning,
   } = useFocusSessionStore();
   const { dropdown, menuItem, divider } = useDropdownTheme();
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const [focusTime, setFocusTime] = useState(settings.focusDuration.toString());
   const [breakTime, setBreakTime] = useState(settings.breakDuration.toString());
+
+  // Calculate adaptive position
+  const [position, setPosition] = useState<{ vertical: 'top' | 'bottom'; horizontal: 'left' | 'right' }>({ vertical: 'bottom', horizontal: 'right' });
+
+  useEffect(() => {
+    if (!triggerRef?.current) return;
+
+    const calculatePosition = () => {
+      const triggerRect = triggerRef.current!.getBoundingClientRect();
+      const contentHeight = contentRef.current?.offsetHeight || 400;
+      const contentWidth = contentRef.current?.offsetWidth || 256;
+
+      const spaceBelow = window.innerHeight - triggerRect.bottom - 8;
+      const spaceAbove = triggerRect.top - 8;
+      const spaceRight = window.innerWidth - triggerRect.right;
+      const spaceLeft = triggerRect.left;
+
+      setPosition({
+        vertical: spaceBelow < contentHeight && spaceAbove > spaceBelow ? 'top' : 'bottom',
+        horizontal: spaceRight < contentWidth && spaceLeft > spaceRight ? 'left' : 'right',
+      });
+    };
+
+    calculatePosition();
+    const frameId = requestAnimationFrame(calculatePosition);
+    window.addEventListener('resize', calculatePosition);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener('resize', calculatePosition);
+    };
+  }, [triggerRef]);
 
   const handleFocusTimeChange = (value: string) => {
     setFocusTime(value);
@@ -278,11 +317,30 @@ function PomodoroSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => vo
     }
   };
 
+  const positionClasses = `${position.horizontal === 'right' ? 'right-0' : 'left-0'} ${position.vertical === 'bottom' ? 'top-full mt-2' : 'bottom-full mb-2'}`;
+
+  // Arrow positioning
+  const arrowAlignmentClass = position.horizontal === 'right' ? 'right-3' : 'left-3';
+
   return (
     <div
-      className={`absolute right-0 top-full mt-2 z-50 w-64 rounded-xl ${dropdown} backdrop-blur-sm shadow-2xl overflow-hidden`}
+      ref={contentRef}
+      className={`absolute ${positionClasses} z-50 w-64 rounded-xl ${dropdown} backdrop-blur-sm shadow-2xl overflow-visible`}
       style={{ animation: 'fadeIn 150ms ease-out' }}
     >
+        {/* Arrow */}
+        {position.vertical === 'bottom' ? (
+          <div
+            className={`absolute -top-1.5 ${arrowAlignmentClass} w-3 h-3 rotate-45 bg-inherit rounded-tl-sm`}
+            style={{ boxShadow: '-1px -1px 1px rgba(0,0,0,0.1)' }}
+          />
+        ) : (
+          <div
+            className={`absolute -bottom-1.5 ${arrowAlignmentClass} w-3 h-3 rotate-45 bg-inherit rounded-br-sm`}
+            style={{ boxShadow: '1px 1px 1px rgba(0,0,0,0.1)' }}
+          />
+        )}
+
         {/* Header with mode toggle */}
         <div className={`flex items-center justify-between px-4 py-3 border-b ${divider}`}>
           <div className="flex items-center gap-2">
@@ -398,15 +456,67 @@ function PomodoroSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => vo
 }
 
 // Timer settings dropdown for Count Up
-function CountUpSettingsDropdown({ onClose, onSwitchMode }: { onClose: () => void; onSwitchMode: () => void }) {
+function CountUpSettingsDropdown({ onClose, onSwitchMode, triggerRef }: { onClose: () => void; onSwitchMode: () => void; triggerRef?: React.RefObject<HTMLElement | null> }) {
   const { settings, updateSettings, resetTimer, isTimerRunning } = useFocusSessionStore();
   const { dropdown, menuItem, divider } = useDropdownTheme();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Calculate adaptive position
+  const [position, setPosition] = useState<{ vertical: 'top' | 'bottom'; horizontal: 'left' | 'right' }>({ vertical: 'bottom', horizontal: 'right' });
+
+  useEffect(() => {
+    if (!triggerRef?.current) return;
+
+    const calculatePosition = () => {
+      const triggerRect = triggerRef.current!.getBoundingClientRect();
+      const contentHeight = contentRef.current?.offsetHeight || 200;
+      const contentWidth = contentRef.current?.offsetWidth || 224;
+
+      const spaceBelow = window.innerHeight - triggerRect.bottom - 8;
+      const spaceAbove = triggerRect.top - 8;
+      const spaceRight = window.innerWidth - triggerRect.right;
+      const spaceLeft = triggerRect.left;
+
+      setPosition({
+        vertical: spaceBelow < contentHeight && spaceAbove > spaceBelow ? 'top' : 'bottom',
+        horizontal: spaceRight < contentWidth && spaceLeft > spaceRight ? 'left' : 'right',
+      });
+    };
+
+    calculatePosition();
+    const frameId = requestAnimationFrame(calculatePosition);
+    window.addEventListener('resize', calculatePosition);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener('resize', calculatePosition);
+    };
+  }, [triggerRef]);
+
+  const positionClasses = `${position.horizontal === 'right' ? 'right-0' : 'left-0'} ${position.vertical === 'bottom' ? 'top-full mt-2' : 'bottom-full mb-2'}`;
+
+  // Arrow positioning
+  const arrowAlignmentClass = position.horizontal === 'right' ? 'right-3' : 'left-3';
 
   return (
     <div
-        className={`absolute right-0 top-full mt-2 z-50 w-56 rounded-xl ${dropdown} backdrop-blur-sm shadow-2xl overflow-hidden`}
+        ref={contentRef}
+        className={`absolute ${positionClasses} z-50 w-56 rounded-xl ${dropdown} backdrop-blur-sm shadow-2xl overflow-visible`}
         style={{ animation: 'fadeIn 150ms ease-out' }}
       >
+        {/* Arrow */}
+        {position.vertical === 'bottom' ? (
+          <div
+            className={`absolute -top-1.5 ${arrowAlignmentClass} w-3 h-3 rotate-45 bg-inherit rounded-tl-sm`}
+            style={{ boxShadow: '-1px -1px 1px rgba(0,0,0,0.1)' }}
+          />
+        ) : (
+          <div
+            className={`absolute -bottom-1.5 ${arrowAlignmentClass} w-3 h-3 rotate-45 bg-inherit rounded-br-sm`}
+            style={{ boxShadow: '1px 1px 1px rgba(0,0,0,0.1)' }}
+          />
+        )}
+
         {/* Header with mode toggle */}
         <div className={`flex items-center justify-between px-4 py-3 border-b ${divider}`}>
           <div className="flex items-center gap-2">
@@ -461,9 +571,33 @@ function FocusInput() {
   const [showMenu, setShowMenu] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const menuContainerRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuContentRef = useRef<HTMLDivElement>(null);
+  const [menuPosition, setMenuPosition] = useState<{ vertical: 'top' | 'bottom' }>({ vertical: 'bottom' });
 
   const handleCloseMenu = useCallback(() => setShowMenu(false), []);
   useClickOutside(menuContainerRef, handleCloseMenu, showMenu);
+
+  // Calculate adaptive position for menu
+  useEffect(() => {
+    if (!showMenu || !menuButtonRef.current) return;
+
+    const calculatePosition = () => {
+      const triggerRect = menuButtonRef.current!.getBoundingClientRect();
+      const contentHeight = menuContentRef.current?.offsetHeight || 80;
+      const spaceBelow = window.innerHeight - triggerRect.bottom - 8;
+      const spaceAbove = triggerRect.top - 8;
+
+      setMenuPosition({
+        vertical: spaceBelow < contentHeight && spaceAbove > spaceBelow ? 'top' : 'bottom',
+      });
+    };
+
+    calculatePosition();
+    const frameId = requestAnimationFrame(calculatePosition);
+
+    return () => cancelAnimationFrame(frameId);
+  }, [showMenu]);
 
   useEffect(() => {
     setInputValue(focus);
@@ -574,6 +708,7 @@ function FocusInput() {
       {/* Three dots menu - absolute positioned on right */}
       <div ref={menuContainerRef} className="absolute -right-8 top-1/2 -translate-y-1/2">
         <button
+          ref={menuButtonRef}
           onClick={() => setShowMenu(!showMenu)}
           className={`p-1 rounded-full transition-all hover:bg-white/10 ${
             showMenu ? 'opacity-100 text-white/60' : 'opacity-0 group-hover:opacity-100 text-white/40'
@@ -585,9 +720,22 @@ function FocusInput() {
         {/* Dropdown menu */}
         {showMenu && (
           <div
-            className={`absolute right-0 top-full mt-1 z-50 w-28 rounded-lg ${dropdown} backdrop-blur-sm py-1 shadow-xl`}
+            ref={menuContentRef}
+            className={`absolute right-0 ${menuPosition.vertical === 'bottom' ? 'top-full mt-2' : 'bottom-full mb-2'} z-50 w-28 rounded-lg ${dropdown} backdrop-blur-sm py-1 shadow-xl overflow-visible`}
             style={{ animation: 'fadeIn 150ms ease-out' }}
           >
+            {/* Arrow */}
+            {menuPosition.vertical === 'bottom' ? (
+              <div
+                className="absolute -top-1.5 right-3 w-3 h-3 rotate-45 bg-inherit rounded-tl-sm"
+                style={{ boxShadow: '-1px -1px 1px rgba(0,0,0,0.1)' }}
+              />
+            ) : (
+              <div
+                className="absolute -bottom-1.5 right-3 w-3 h-3 rotate-45 bg-inherit rounded-br-sm"
+                style={{ boxShadow: '1px 1px 1px rgba(0,0,0,0.1)' }}
+              />
+            )}
             <button
               onClick={handleEdit}
               className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors ${menuItem}`}
@@ -629,39 +777,60 @@ function FocusModeUI() {
   } = useFocusSessionStore();
 
   const [showSettings, setShowSettings] = useState(false);
+  const [showTodos, setShowTodos] = useState(false);
+  const [showLinks, setShowLinks] = useState(false);
   const settingsContainerRef = useRef<HTMLDivElement>(null);
+  const settingsButtonRef = useRef<HTMLButtonElement>(null);
+  const { tasks } = useTodosStore();
+  const { widgets } = useSettingsStore();
+  const incompleteTasks = tasks.filter((t) => !t.completed).length;
 
   const handleCloseSettings = useCallback(() => setShowSettings(false), []);
   useClickOutside(settingsContainerRef, handleCloseSettings, showSettings);
+
+  const openSettings = () => {
+    window.dispatchEvent(new CustomEvent('openSettings', { detail: {} }));
+  };
 
   // Calculate progress for arc indicator
   const progress = timerMode === 'pomodoro' && initialTimerSeconds > 0
     ? timerSeconds / initialTimerSeconds
     : 0;
 
-  // Timer tick effect
+  // Use ref for tick to avoid recreating interval on every state change
+  const tickRef = useRef(tick);
   useEffect(() => {
-    let interval: number | null = null;
-    if (isTimerRunning) {
-      interval = window.setInterval(() => {
-        tick();
-      }, 1000);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isTimerRunning, tick]);
+    tickRef.current = tick;
+  }, [tick]);
 
-  // ESC key handler
+  // Timer tick effect - stable interval that doesn't recreate on tick changes
+  useEffect(() => {
+    if (!isTimerRunning) return;
+
+    const interval = window.setInterval(() => {
+      tickRef.current();
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isTimerRunning]);
+
+  // Use ref for exitFocusMode to avoid ESC handler re-registration
+  const exitFocusModeRef = useRef(exitFocusMode);
+  useEffect(() => {
+    exitFocusModeRef.current = exitFocusMode;
+  }, [exitFocusMode]);
+
+  // ESC key handler - stable handler that doesn't re-register on exitFocusMode changes
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        exitFocusMode();
+        e.stopPropagation();
+        exitFocusModeRef.current();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [exitFocusMode]);
+  }, []);
 
   const handleSwitchMode = () => {
     setTimerMode(timerMode === 'pomodoro' ? 'countup' : 'pomodoro');
@@ -694,22 +863,37 @@ function FocusModeUI() {
         className="flex items-center justify-between p-6 animate-slideDown"
         style={{ animationDelay: '0s' }}
       >
-        {/* Left - Focus indicator and session time */}
+        {/* Left - Quick Links, Settings, Focus indicator */}
         <div className="flex items-center gap-3">
-          {/* Pulsing green dot */}
-          <div className="relative">
-            <div className="w-3 h-3 rounded-full bg-green-500" />
-            <div className="absolute inset-0 w-3 h-3 rounded-full bg-green-500 animate-ping opacity-75" />
+          <div className="flex items-center gap-1">
+            <IconButton
+              icon={ExternalLink}
+              onClick={() => setShowLinks(!showLinks)}
+              label="Quick Links"
+            />
+            <IconButton
+              icon={Settings}
+              onClick={openSettings}
+              label="Settings"
+            />
           </div>
-          <div>
-            <span className="text-white/90 font-medium">Focus Mode</span>
-            <span className="text-white/50 ml-2 text-sm">
-              {formatDuration(totalSessionSeconds)}
-            </span>
+
+          {/* Pulsing green dot + Focus Mode label */}
+          <div className="flex items-center gap-3 ml-2 pl-3 border-l border-white/20">
+            <div className="relative">
+              <div className="w-3 h-3 rounded-full bg-green-500" />
+              <div className="absolute inset-0 w-3 h-3 rounded-full bg-green-500 animate-ping opacity-75" />
+            </div>
+            <div>
+              <span className="text-white/90 font-medium">Focus Mode</span>
+              <span className="text-white/50 ml-2 text-sm">
+                {formatDuration(totalSessionSeconds)}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Right - End Focus button only */}
+        {/* Right - End Focus button */}
         <button
           onClick={exitFocusMode}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-all"
@@ -775,6 +959,7 @@ function FocusModeUI() {
               {/* Settings button - absolute positioned on right */}
               <div ref={settingsContainerRef} className="absolute -right-10 top-1/2 -translate-y-1/2">
                 <button
+                  ref={settingsButtonRef}
                   onClick={() => setShowSettings(!showSettings)}
                   className={`p-1.5 rounded-full transition-all hover:bg-white/10 ${
                     showSettings
@@ -787,7 +972,7 @@ function FocusModeUI() {
 
                 {/* Settings dropdown */}
                 {showSettings && (
-                  <PomodoroSettingsDropdown onClose={() => setShowSettings(false)} onSwitchMode={handleSwitchMode} />
+                  <PomodoroSettingsDropdown onClose={() => setShowSettings(false)} onSwitchMode={handleSwitchMode} triggerRef={settingsButtonRef} />
                 )}
               </div>
             </div>
@@ -819,6 +1004,7 @@ function FocusModeUI() {
               {/* Settings button - absolute positioned on right */}
               <div ref={settingsContainerRef} className="absolute -right-10 top-1/2 -translate-y-1/2">
                 <button
+                  ref={settingsButtonRef}
                   onClick={() => setShowSettings(!showSettings)}
                   className={`p-1.5 rounded-full transition-all hover:bg-white/10 ${
                     showSettings
@@ -831,7 +1017,7 @@ function FocusModeUI() {
 
                 {/* Settings dropdown */}
                 {showSettings && (
-                  <CountUpSettingsDropdown onClose={() => setShowSettings(false)} onSwitchMode={handleSwitchMode} />
+                  <CountUpSettingsDropdown onClose={() => setShowSettings(false)} onSwitchMode={handleSwitchMode} triggerRef={settingsButtonRef} />
                 )}
               </div>
             </div>
@@ -849,17 +1035,59 @@ function FocusModeUI() {
         )}
       </div>
 
-      {/* Footer - minimal */}
+      {/* Footer - Tasks icon on right */}
       <div
-        className="p-6 text-center animate-fadeIn"
+        className="p-6 flex items-center justify-between animate-fadeIn"
         style={{ animationDelay: '0.5s' }}
       >
+        {/* Left spacer for centering */}
+        <div className="w-10" />
+
+        {/* Center - motivational text */}
         <p className="text-white/30 text-sm italic">
           {timerMode === 'pomodoro'
-            ? `Now is the time to tune out the world and focus.`
+            ? 'Now is the time to tune out the world and focus.'
             : 'Track your focused work time'}
         </p>
+
+        {/* Right - Tasks icon */}
+        <div className="relative">
+          <IconButton
+            icon={CheckSquare}
+            onClick={() => setShowTodos(!showTodos)}
+            label="Todo List"
+          />
+          {incompleteTasks > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-500 px-1.5 text-xs font-medium text-white">
+              {incompleteTasks}
+            </span>
+          )}
+        </div>
       </div>
+
+      {/* Todo List Popup */}
+      <PopupPanel
+        isOpen={showTodos && widgets.todos}
+        onClose={() => setShowTodos(false)}
+        position="bottom-right"
+        title="Tasks"
+        maxWidth="max-w-sm"
+        headerActions={<TodoListHeaderActions onClose={() => setShowTodos(false)} />}
+      >
+        <TodoList />
+      </PopupPanel>
+
+      {/* Quick Links Popup */}
+      <PopupPanel
+        isOpen={showLinks && widgets.quickLinks}
+        onClose={() => setShowLinks(false)}
+        position="top-left"
+        title="Quick Links"
+        maxWidth="max-w-sm"
+        headerActions={<QuickLinksHeaderActions onClose={() => setShowLinks(false)} />}
+      >
+        <QuickLinks />
+      </PopupPanel>
     </div>
   );
 }
@@ -868,38 +1096,49 @@ function FocusModeUI() {
 export function FocusModeOverlay() {
   const { phase, setPhase, resetSession } = useFocusSessionStore();
 
-  // Handle phase transitions
-  const advancePhase = useCallback(() => {
+  // Use refs to avoid stale closures in setTimeout callbacks
+  const setPhaseRef = useRef(setPhase);
+  const resetSessionRef = useRef(resetSession);
+
+  useEffect(() => {
+    setPhaseRef.current = setPhase;
+    resetSessionRef.current = resetSession;
+  }, [setPhase, resetSession]);
+
+  // Handle phase transitions using refs to avoid stale closures
+  useEffect(() => {
+    if (phase === 'idle' || phase === 'active') return;
+
+    let timeoutId: number;
+
     switch (phase) {
       case 'entering':
         // After zoom animation, show transition screen
-        setTimeout(() => setPhase('transition'), 2000);
+        timeoutId = window.setTimeout(() => setPhaseRef.current('transition'), 2000);
         break;
       case 'transition':
         // After quote screen, show focus UI
-        setTimeout(() => setPhase('active'), 2200);
+        timeoutId = window.setTimeout(() => setPhaseRef.current('active'), 2200);
         break;
       case 'exiting':
         // After fade out, show celebration
-        setTimeout(() => setPhase('celebration'), 400);
+        timeoutId = window.setTimeout(() => setPhaseRef.current('celebration'), 400);
         break;
       case 'celebration':
         // After celebration, start zoom out
-        setTimeout(() => setPhase('leaving'), 2800);
+        timeoutId = window.setTimeout(() => setPhaseRef.current('leaving'), 2800);
         break;
       case 'leaving':
         // After zoom out, reset to idle
-        setTimeout(() => resetSession(), 2000);
+        timeoutId = window.setTimeout(() => resetSessionRef.current(), 2000);
         break;
     }
-  }, [phase, setPhase, resetSession]);
 
-  // Trigger phase advancement
-  useEffect(() => {
-    if (phase !== 'idle' && phase !== 'active') {
-      advancePhase();
-    }
-  }, [phase, advancePhase]);
+    // Cleanup timeout on phase change or unmount
+    return () => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
+  }, [phase]);
 
   // Don't render anything in idle state
   if (phase === 'idle') return null;

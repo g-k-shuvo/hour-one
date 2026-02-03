@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { MapPin, RefreshCw, CloudOff, X, MoreHorizontal } from 'lucide-react';
+import { MapPin, RefreshCw, CloudOff, X } from 'lucide-react';
 import { useWeatherStore } from '@/stores/weatherStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { celsiusToFahrenheit, getWindDirectionArrow } from '@/services/weatherService';
+import { PopupPanel } from '@/components/ui/PopupPanel';
 
 interface WeatherProps {
   compact?: boolean;
@@ -74,18 +74,21 @@ export function Weather({ compact = false }: WeatherProps) {
         </button>
 
         {/* Expanded Weather Panel */}
-        {showExpanded && createPortal(
-          <WeatherExpandedPanel
+        <PopupPanel
+          isOpen={showExpanded}
+          onClose={() => setShowExpanded(false)}
+          position="top-right"
+          maxWidth="max-w-md"
+        >
+          <WeatherExpandedContent
             weather={weather}
             isLoading={isLoading}
             formatTemperature={formatTemperature}
             formatTempNumber={formatTempNumber}
             temperatureUnit={temperatureUnit}
-            onClose={() => setShowExpanded(false)}
             onRefresh={refreshWeather}
-          />,
-          document.body
-        )}
+          />
+        </PopupPanel>
       </>
     );
   }
@@ -198,26 +201,24 @@ export function Weather({ compact = false }: WeatherProps) {
   );
 }
 
-// Expanded Weather Panel Component
-interface WeatherExpandedPanelProps {
+// Expanded Weather Content Component (used inside PopupPanel)
+interface WeatherExpandedContentProps {
   weather: NonNullable<ReturnType<typeof useWeatherStore.getState>['weather']>;
   isLoading: boolean;
   formatTemperature: (celsius: number) => string;
   formatTempNumber: (celsius: number) => number;
   temperatureUnit: 'celsius' | 'fahrenheit';
-  onClose: () => void;
   onRefresh: () => void;
 }
 
-function WeatherExpandedPanel({
+function WeatherExpandedContent({
   weather,
   isLoading,
   formatTemperature,
   formatTempNumber,
   temperatureUnit,
-  onClose,
   onRefresh,
-}: WeatherExpandedPanelProps) {
+}: WeatherExpandedContentProps) {
   const windUnit = temperatureUnit === 'fahrenheit' ? 'mph' : 'km/h';
   const windSpeed = temperatureUnit === 'fahrenheit' && weather.windSpeed
     ? Math.round(weather.windSpeed * 0.621371)
@@ -234,175 +235,140 @@ function WeatherExpandedPanel({
     : weather.pressure;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-end p-4"
-      style={{ animation: 'fadeIn 200ms ease-out' }}
-    >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/20"
-        onClick={onClose}
-      />
-
-      {/* Panel */}
-      <div
-        className="relative z-10 w-full max-w-md rounded-2xl bg-gray-900/95 backdrop-blur-xl shadow-2xl overflow-hidden"
-        style={{ animation: 'slideIn 200ms ease-out' }}
-      >
-        {/* Header */}
-        <div className="p-5 pb-0">
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-xl font-medium text-white">{weather.location}</h2>
-              <p className="text-sm text-white/60">{weather.condition}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={onRefresh}
-                disabled={isLoading}
-                className="rounded-full p-2 text-white/40 hover:bg-white/10 hover:text-white/60 transition-colors"
-                aria-label="Refresh weather"
-              >
-                <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
-              </button>
-              <button
-                onClick={onClose}
-                className="rounded-full p-2 text-white/40 hover:bg-white/10 hover:text-white/60 transition-colors"
-                aria-label="Close"
-              >
-                <X size={16} />
-              </button>
-            </div>
+    <div className="-m-4">
+      {/* Header */}
+      <div className="p-5 pb-0">
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-xl font-medium text-white">{weather.location}</h2>
+            <p className="text-sm text-white/60">{weather.condition}</p>
           </div>
-
-          {/* Main Temperature */}
-          <div className="flex items-center gap-6 mt-4">
-            <div className="flex items-center gap-3">
-              <span className="text-5xl" role="img" aria-label={weather.condition}>
-                {weather.icon}
-              </span>
-              <span className="text-6xl font-light text-white">
-                {formatTempNumber(weather.temperature)}°
-              </span>
-            </div>
-            <div className="text-sm text-white/70 space-y-1">
-              {weather.feelsLike !== undefined && (
-                <p>Feels like <span className="text-white">{formatTemperature(weather.feelsLike)}</span></p>
-              )}
-              {weather.precipitation !== undefined && (
-                <p>Precipitation <span className="text-white">{weather.precipitation} mm</span></p>
-              )}
-              {weather.windSpeed !== undefined && weather.windDirection !== undefined && (
-                <p>Wind <span className="text-white">{getWindDirectionArrow(weather.windDirection)} {windSpeed} {windUnit}</span></p>
-              )}
-            </div>
-          </div>
+          <button
+            onClick={onRefresh}
+            disabled={isLoading}
+            className="rounded-full p-2 text-white/40 hover:bg-white/10 hover:text-white/60 transition-colors"
+            aria-label="Refresh weather"
+          >
+            <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
+          </button>
         </div>
 
-        {/* Hourly Forecast */}
-        {weather.hourlyForecast && weather.hourlyForecast.length > 0 && (
-          <div className="mt-5 px-5 py-3 border-t border-white/10">
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              {weather.hourlyForecast.map((hour, index) => (
-                <div key={index} className="flex flex-col items-center min-w-[40px]">
-                  <span className="text-xs text-white/50">{hour.time}</span>
-                  <span className="text-lg my-1">{hour.icon}</span>
-                  <span className="text-xs text-white">{formatTempNumber(hour.temperature)}°</span>
-                </div>
-              ))}
-            </div>
+        {/* Main Temperature */}
+        <div className="flex items-center gap-6 mt-4">
+          <div className="flex items-center gap-3">
+            <span className="text-5xl" role="img" aria-label={weather.condition}>
+              {weather.icon}
+            </span>
+            <span className="text-6xl font-light text-white">
+              {formatTempNumber(weather.temperature)}°
+            </span>
           </div>
-        )}
-
-        {/* Details Grid */}
-        <div className="mt-2 px-5 py-4 border-t border-white/10">
-          <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-            {weather.sunrise && (
-              <div className="flex justify-between">
-                <span className="text-white/50">Sunrise</span>
-                <span className="text-white">{weather.sunrise}</span>
-              </div>
-            )}
-            {weather.humidity !== undefined && (
-              <div className="flex justify-between">
-                <span className="text-white/50">Humidity</span>
-                <span className="text-white">{weather.humidity}%</span>
-              </div>
-            )}
-            {weather.sunset && (
-              <div className="flex justify-between">
-                <span className="text-white/50">Sunset</span>
-                <span className="text-white">{weather.sunset}</span>
-              </div>
+          <div className="text-sm text-white/70 space-y-1">
+            {weather.feelsLike !== undefined && (
+              <p>Feels like <span className="text-white">{formatTemperature(weather.feelsLike)}</span></p>
             )}
             {weather.precipitation !== undefined && (
-              <div className="flex justify-between">
-                <span className="text-white/50">Precipitation</span>
-                <span className="text-white">{weather.precipitation} mm</span>
-              </div>
+              <p>Precipitation <span className="text-white">{weather.precipitation} mm</span></p>
             )}
-            {weather.uvIndex !== undefined && (
-              <div className="flex justify-between">
-                <span className="text-white/50">UV Index</span>
-                <span className="text-white">{weather.uvIndex}</span>
-              </div>
-            )}
-            {weather.pressure !== undefined && (
-              <div className="flex justify-between">
-                <span className="text-white/50">Pressure</span>
-                <span className="text-white">{pressure} {pressureUnit}</span>
-              </div>
-            )}
-            {weather.visibility !== undefined && (
-              <div className="flex justify-between">
-                <span className="text-white/50">Visibility</span>
-                <span className="text-white">{visibility} {visibilityUnit}</span>
-              </div>
+            {weather.windSpeed !== undefined && weather.windDirection !== undefined && (
+              <p>Wind <span className="text-white">{getWindDirectionArrow(weather.windDirection)} {windSpeed} {windUnit}</span></p>
             )}
           </div>
-        </div>
-
-        {/* Daily Forecast */}
-        {weather.dailyForecast && weather.dailyForecast.length > 0 && (
-          <div className="px-5 py-4 border-t border-white/10">
-            <div className="flex justify-between">
-              {weather.dailyForecast.map((day, index) => (
-                <div key={index} className="flex flex-col items-center">
-                  <span className="text-xs text-white/50 font-medium">{day.day}</span>
-                  <span className="text-xl my-1">{day.icon}</span>
-                  <div className="text-xs">
-                    <span className="text-white">{formatTempNumber(day.high)}°</span>
-                    <span className="text-white/40 ml-1">{formatTempNumber(day.low)}°</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="px-5 py-3 border-t border-white/10 flex justify-end">
-          <a
-            href="https://open-meteo.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-white/40 hover:text-white/60 transition-colors"
-          >
-            Powered by Open-Meteo
-          </a>
         </div>
       </div>
 
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+      {/* Hourly Forecast */}
+      {weather.hourlyForecast && weather.hourlyForecast.length > 0 && (
+        <div className="mt-5 px-5 py-3 border-t border-white/10">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {weather.hourlyForecast.map((hour, index) => (
+              <div key={index} className="flex flex-col items-center min-w-[40px]">
+                <span className="text-xs text-white/50">{hour.time}</span>
+                <span className="text-lg my-1">{hour.icon}</span>
+                <span className="text-xs text-white">{formatTempNumber(hour.temperature)}°</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Details Grid */}
+      <div className="mt-2 px-5 py-4 border-t border-white/10">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+          {weather.sunrise && (
+            <div className="flex justify-between">
+              <span className="text-white/50">Sunrise</span>
+              <span className="text-white">{weather.sunrise}</span>
+            </div>
+          )}
+          {weather.humidity !== undefined && (
+            <div className="flex justify-between">
+              <span className="text-white/50">Humidity</span>
+              <span className="text-white">{weather.humidity}%</span>
+            </div>
+          )}
+          {weather.sunset && (
+            <div className="flex justify-between">
+              <span className="text-white/50">Sunset</span>
+              <span className="text-white">{weather.sunset}</span>
+            </div>
+          )}
+          {weather.precipitation !== undefined && (
+            <div className="flex justify-between">
+              <span className="text-white/50">Precipitation</span>
+              <span className="text-white">{weather.precipitation} mm</span>
+            </div>
+          )}
+          {weather.uvIndex !== undefined && (
+            <div className="flex justify-between">
+              <span className="text-white/50">UV Index</span>
+              <span className="text-white">{weather.uvIndex}</span>
+            </div>
+          )}
+          {weather.pressure !== undefined && (
+            <div className="flex justify-between">
+              <span className="text-white/50">Pressure</span>
+              <span className="text-white">{pressure} {pressureUnit}</span>
+            </div>
+          )}
+          {weather.visibility !== undefined && (
+            <div className="flex justify-between">
+              <span className="text-white/50">Visibility</span>
+              <span className="text-white">{visibility} {visibilityUnit}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Daily Forecast */}
+      {weather.dailyForecast && weather.dailyForecast.length > 0 && (
+        <div className="px-5 py-4 border-t border-white/10">
+          <div className="flex justify-between">
+            {weather.dailyForecast.map((day, index) => (
+              <div key={index} className="flex flex-col items-center">
+                <span className="text-xs text-white/50 font-medium">{day.day}</span>
+                <span className="text-xl my-1">{day.icon}</span>
+                <div className="text-xs">
+                  <span className="text-white">{formatTempNumber(day.high)}°</span>
+                  <span className="text-white/40 ml-1">{formatTempNumber(day.low)}°</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="px-5 py-3 border-t border-white/10 flex justify-end">
+        <a
+          href="https://open-meteo.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-white/40 hover:text-white/60 transition-colors"
+        >
+          Powered by Open-Meteo
+        </a>
+      </div>
     </div>
   );
 }

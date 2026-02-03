@@ -22,6 +22,7 @@ import {
   DropdownItem,
   DropdownDivider,
   DropdownContainer,
+  AdaptiveDropdown,
 } from '@/components/ui/Dropdown';
 import type { QuickLink, LinkGroup } from '@/types';
 
@@ -336,20 +337,19 @@ export function QuickLinks(_props: QuickLinksProps) {
 
 // Header Actions component for PopupPanel
 export function QuickLinksHeaderActions({
-  onOpenSettings,
+  onClose,
 }: {
-  onOpenSettings?: () => void;
+  onClose?: () => void;
 }) {
   const { viewMode, setViewMode } = useQuickLinksStore();
 
   const handleOpenSettings = () => {
-    if (onOpenSettings) {
-      onOpenSettings();
-    } else {
-      window.dispatchEvent(
-        new CustomEvent('openSettings', { detail: { section: 'links' } })
-      );
-    }
+    // Close the popup first
+    onClose?.();
+    // Then open settings
+    window.dispatchEvent(
+      new CustomEvent('openSettings', { detail: { section: 'links' } })
+    );
   };
 
   return (
@@ -403,6 +403,7 @@ function GroupHeader({
   onCancelDelete,
 }: GroupHeaderProps) {
   const [showMenu, setShowMenu] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const handleOpenAll = () => {
     groupLinks.forEach((link) => {
@@ -473,54 +474,53 @@ function GroupHeader({
           className="relative"
         >
           <button
+            ref={triggerRef}
             onClick={() => setShowMenu(!showMenu)}
             className="ml-1 rounded p-0.5 text-white/30 opacity-0 transition-all hover:bg-white/10 hover:text-white/60 group-hover/header:opacity-100"
           >
             <MoreVertical size={12} />
           </button>
 
-          {showMenu && (
-            <Dropdown position="right" width="w-32">
-              {groupLinks.length > 0 && (
-                <>
-                  <DropdownItem onClick={() => { handleOpenAll(); setShowMenu(false); }}>
-                    <ExternalLink size={12} />
-                    Open All
-                  </DropdownItem>
-                  <DropdownDivider />
-                </>
-              )}
-              <DropdownItem onClick={onAddLink}>
-                <Plus size={12} />
-                Add Link
-              </DropdownItem>
-              <DropdownItem onClick={onEdit}>
-                <Pencil size={12} />
-                Edit
-              </DropdownItem>
-              <DropdownItem
-                onClick={() => {
-                  onPin();
-                  setShowMenu(false);
-                }}
-                className={!canPin && !isPinned ? 'opacity-50' : ''}
-              >
-                {isPinned ? <PinOff size={12} /> : <Pin size={12} />}
-                {isPinned ? 'Unpin' : 'Pin'}
-              </DropdownItem>
-              <DropdownDivider />
-              <DropdownItem
-                onClick={() => {
-                  setShowMenu(false);
-                  onDelete();
-                }}
-                className="text-red-400"
-              >
-                <Trash2 size={12} />
-                Delete
-              </DropdownItem>
-            </Dropdown>
-          )}
+          <AdaptiveDropdown triggerRef={triggerRef} isOpen={showMenu} width="w-32" preferredPosition="right">
+            {groupLinks.length > 0 && (
+              <>
+                <DropdownItem onClick={() => { handleOpenAll(); setShowMenu(false); }}>
+                  <ExternalLink size={12} />
+                  Open All
+                </DropdownItem>
+                <DropdownDivider />
+              </>
+            )}
+            <DropdownItem onClick={onAddLink}>
+              <Plus size={12} />
+              Add Link
+            </DropdownItem>
+            <DropdownItem onClick={onEdit}>
+              <Pencil size={12} />
+              Edit
+            </DropdownItem>
+            <DropdownItem
+              onClick={() => {
+                onPin();
+                setShowMenu(false);
+              }}
+              className={!canPin && !isPinned ? 'opacity-50' : ''}
+            >
+              {isPinned ? <PinOff size={12} /> : <Pin size={12} />}
+              {isPinned ? 'Unpin' : 'Pin'}
+            </DropdownItem>
+            <DropdownDivider />
+            <DropdownItem
+              onClick={() => {
+                setShowMenu(false);
+                onDelete();
+              }}
+              className="text-red-400"
+            >
+              <Trash2 size={12} />
+              Delete
+            </DropdownItem>
+          </AdaptiveDropdown>
         </DropdownContainer>
       </div>
       <div
@@ -555,6 +555,7 @@ function LinkItem({
 }: LinkItemProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   // Show delete confirmation inline
   if (isConfirmingDelete) {
@@ -627,6 +628,7 @@ function LinkItem({
             className="relative flex-shrink-0"
           >
             <button
+              ref={triggerRef}
               onClick={(e) => {
                 e.preventDefault();
                 setShowMenu(!showMenu);
@@ -636,35 +638,33 @@ function LinkItem({
               <MoreVertical size={14} />
             </button>
 
-            {showMenu && (
-              <Dropdown position="right" width="w-28">
-                <DropdownItem onClick={onEdit}>
-                  <Pencil size={12} />
-                  Edit
-                </DropdownItem>
-                <DropdownItem
-                  onClick={() => {
-                    onPin();
-                    setShowMenu(false);
-                  }}
-                  className={!canPin && !link.pinned ? 'opacity-50' : ''}
-                >
-                  {link.pinned ? <PinOff size={12} /> : <Pin size={12} />}
-                  {link.pinned ? 'Unpin' : 'Pin'}
-                </DropdownItem>
-                <DropdownDivider />
-                <DropdownItem
-                  onClick={() => {
-                    setShowMenu(false);
-                    onDelete();
-                  }}
-                  className="text-red-400"
-                >
-                  <Trash2 size={12} />
-                  Delete
-                </DropdownItem>
-              </Dropdown>
-            )}
+            <AdaptiveDropdown triggerRef={triggerRef} isOpen={showMenu} width="w-28" preferredPosition="right">
+              <DropdownItem onClick={onEdit}>
+                <Pencil size={12} />
+                Edit
+              </DropdownItem>
+              <DropdownItem
+                onClick={() => {
+                  onPin();
+                  setShowMenu(false);
+                }}
+                className={!canPin && !link.pinned ? 'opacity-50' : ''}
+              >
+                {link.pinned ? <PinOff size={12} /> : <Pin size={12} />}
+                {link.pinned ? 'Unpin' : 'Pin'}
+              </DropdownItem>
+              <DropdownDivider />
+              <DropdownItem
+                onClick={() => {
+                  setShowMenu(false);
+                  onDelete();
+                }}
+                className="text-red-400"
+              >
+                <Trash2 size={12} />
+                Delete
+              </DropdownItem>
+            </AdaptiveDropdown>
           </DropdownContainer>
         )}
       </div>
@@ -717,6 +717,7 @@ function LinkItem({
           className="absolute -right-1 -top-1"
         >
           <button
+            ref={triggerRef}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -727,35 +728,33 @@ function LinkItem({
             <MoreVertical size={10} />
           </button>
 
-          {showMenu && (
-            <Dropdown position="right" width="w-28">
-              <DropdownItem onClick={onEdit}>
-                <Pencil size={12} />
-                Edit
-              </DropdownItem>
-              <DropdownItem
-                onClick={() => {
-                  onPin();
-                  setShowMenu(false);
-                }}
-                className={!canPin && !link.pinned ? 'opacity-50' : ''}
-              >
-                {link.pinned ? <PinOff size={12} /> : <Pin size={12} />}
-                {link.pinned ? 'Unpin' : 'Pin'}
-              </DropdownItem>
-              <DropdownDivider />
-              <DropdownItem
-                onClick={() => {
-                  setShowMenu(false);
-                  onDelete();
-                }}
-                className="text-red-400"
-              >
-                <Trash2 size={12} />
-                Delete
-              </DropdownItem>
-            </Dropdown>
-          )}
+          <AdaptiveDropdown triggerRef={triggerRef} isOpen={showMenu} width="w-28" preferredPosition="right">
+            <DropdownItem onClick={onEdit}>
+              <Pencil size={12} />
+              Edit
+            </DropdownItem>
+            <DropdownItem
+              onClick={() => {
+                onPin();
+                setShowMenu(false);
+              }}
+              className={!canPin && !link.pinned ? 'opacity-50' : ''}
+            >
+              {link.pinned ? <PinOff size={12} /> : <Pin size={12} />}
+              {link.pinned ? 'Unpin' : 'Pin'}
+            </DropdownItem>
+            <DropdownDivider />
+            <DropdownItem
+              onClick={() => {
+                setShowMenu(false);
+                onDelete();
+              }}
+              className="text-red-400"
+            >
+              <Trash2 size={12} />
+              Delete
+            </DropdownItem>
+          </AdaptiveDropdown>
         </DropdownContainer>
       )}
     </div>
@@ -784,6 +783,7 @@ function AddLinkFormView({
   const [pinned, setPinned] = useState(false);
   const [showGroupDropdown, setShowGroupDropdown] = useState(false);
   const urlInputRef = useRef<HTMLInputElement>(null);
+  const groupTriggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     urlInputRef.current?.focus();
@@ -859,6 +859,7 @@ function AddLinkFormView({
               className="relative"
             >
               <button
+                ref={groupTriggerRef}
                 type="button"
                 onClick={() => setShowGroupDropdown(!showGroupDropdown)}
                 className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 outline-none transition-colors hover:border-white/20 focus:border-white/30"
@@ -867,34 +868,32 @@ function AddLinkFormView({
                 <ChevronDown size={16} className="text-white/40" />
               </button>
 
-              {showGroupDropdown && (
-                <Dropdown position="bottom" width="w-full">
+              <AdaptiveDropdown triggerRef={groupTriggerRef} isOpen={showGroupDropdown} width="w-full" preferredPosition="left">
+                <DropdownItem
+                  onClick={() => {
+                    setGroupId('');
+                    setShowGroupDropdown(false);
+                  }}
+                >
+                  No group
+                </DropdownItem>
+                <DropdownDivider />
+                {groups.map((g) => (
                   <DropdownItem
+                    key={g.id}
                     onClick={() => {
-                      setGroupId('');
+                      setGroupId(g.id);
                       setShowGroupDropdown(false);
                     }}
                   >
-                    No group
+                    <div
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: g.color || '#888' }}
+                    />
+                    {g.name}
                   </DropdownItem>
-                  <DropdownDivider />
-                  {groups.map((g) => (
-                    <DropdownItem
-                      key={g.id}
-                      onClick={() => {
-                        setGroupId(g.id);
-                        setShowGroupDropdown(false);
-                      }}
-                    >
-                      <div
-                        className="h-2 w-2 rounded-full"
-                        style={{ backgroundColor: g.color || '#888' }}
-                      />
-                      {g.name}
-                    </DropdownItem>
-                  ))}
-                </Dropdown>
-              )}
+                ))}
+              </AdaptiveDropdown>
             </DropdownContainer>
           </div>
         )}
@@ -1017,6 +1016,7 @@ function EditLinkFormView({
   const [groupId, setGroupId] = useState(link.groupId || '');
   const [showGroupDropdown, setShowGroupDropdown] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const groupTriggerRef = useRef<HTMLButtonElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1089,6 +1089,7 @@ function EditLinkFormView({
               className="relative"
             >
               <button
+                ref={groupTriggerRef}
                 type="button"
                 onClick={() => setShowGroupDropdown(!showGroupDropdown)}
                 className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 outline-none transition-colors hover:border-white/20 focus:border-white/30"
@@ -1097,34 +1098,32 @@ function EditLinkFormView({
                 <ChevronDown size={16} className="text-white/40" />
               </button>
 
-              {showGroupDropdown && (
-                <Dropdown position="bottom" width="w-full">
+              <AdaptiveDropdown triggerRef={groupTriggerRef} isOpen={showGroupDropdown} width="w-full" preferredPosition="left">
+                <DropdownItem
+                  onClick={() => {
+                    setGroupId('');
+                    setShowGroupDropdown(false);
+                  }}
+                >
+                  No group
+                </DropdownItem>
+                <DropdownDivider />
+                {groups.map((g) => (
                   <DropdownItem
+                    key={g.id}
                     onClick={() => {
-                      setGroupId('');
+                      setGroupId(g.id);
                       setShowGroupDropdown(false);
                     }}
                   >
-                    No group
+                    <div
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: g.color || '#888' }}
+                    />
+                    {g.name}
                   </DropdownItem>
-                  <DropdownDivider />
-                  {groups.map((g) => (
-                    <DropdownItem
-                      key={g.id}
-                      onClick={() => {
-                        setGroupId(g.id);
-                        setShowGroupDropdown(false);
-                      }}
-                    >
-                      <div
-                        className="h-2 w-2 rounded-full"
-                        style={{ backgroundColor: g.color || '#888' }}
-                      />
-                      {g.name}
-                    </DropdownItem>
-                  ))}
-                </Dropdown>
-              )}
+                ))}
+              </AdaptiveDropdown>
             </DropdownContainer>
           </div>
         )}

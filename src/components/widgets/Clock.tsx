@@ -342,9 +342,14 @@ export function Clock() {
         {/* Config popup */}
         {showConfig && (
           <div
-            className={`fixed z-50 w-40 rounded-lg ${dropdown} py-2 shadow-xl`}
+            className={`fixed z-50 w-40 rounded-lg ${dropdown} py-2 shadow-xl overflow-visible`}
             style={{ top: configPosition.top, left: configPosition.left }}
           >
+            {/* Arrow pointing up */}
+            <div
+              className="absolute -top-1.5 left-3 w-3 h-3 rotate-45 bg-inherit rounded-tl-sm"
+              style={{ boxShadow: '-1px -1px 1px rgba(0,0,0,0.1)' }}
+            />
             {/* Time format section */}
             <p className={`px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider ${sectionLabel}`}>
               Format

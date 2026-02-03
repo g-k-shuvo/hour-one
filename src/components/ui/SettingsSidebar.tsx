@@ -489,13 +489,6 @@ export function SettingsSidebar() {
 
   return (
     <>
-      {/* Settings Button */}
-      <IconButton
-        icon={Settings}
-        onClick={() => setIsOpen(true)}
-        label="Open settings"
-      />
-
       {/* Settings Modal with Fade Animation */}
       {isOpen && (
         <div

@@ -9,9 +9,10 @@ import type { Bookmark as BookmarkType } from '@/services/bookmarksService';
 
 // Nested folder item component (for folders inside dropdowns)
 function NestedFolder({ bookmark, onClose }: { bookmark: BookmarkType; onClose: () => void }) {
-  const { dropdown, menuItem } = useDropdownTheme();
+  const { dropdown, menuItem, isDark } = useDropdownTheme();
+  const arrowBg = isDark ? 'bg-neutral-900' : 'bg-white';
   const [isOpen, setIsOpen] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [position, setPosition] = useState({ top: 0, left: 0, openLeft: false });
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleToggle = () => {
@@ -37,7 +38,7 @@ function NestedFolder({ bookmark, onClose }: { bookmark: BookmarkType; onClose: 
       left = Math.max(8, Math.min(left, window.innerWidth - estimatedWidth - 8));
       top = Math.max(8, Math.min(top, window.innerHeight - estimatedHeight - 8));
 
-      setPosition({ top, left });
+      setPosition({ top, left, openLeft });
     }
     setIsOpen(!isOpen);
   };
@@ -60,12 +61,22 @@ function NestedFolder({ bookmark, onClose }: { bookmark: BookmarkType; onClose: 
       {/* Nested dropdown - rendered via portal to escape parent stacking context */}
       {isOpen && bookmark.children && bookmark.children.length > 0 && createPortal(
         <div
-          className={`fixed z-[100] min-w-44 max-w-60 max-h-72 overflow-y-auto scrollbar-thin rounded-lg ${dropdown} py-1.5 shadow-xl`}
+          className={`fixed z-[100] min-w-44 max-w-60 max-h-72 overflow-y-auto scrollbar-thin rounded-lg ${dropdown} py-1.5 shadow-xl overflow-visible`}
           style={{
             top: position.top,
             left: position.left,
           }}
         >
+          {/* Arrow pointing toward parent */}
+          {position.openLeft ? (
+            <div
+              className={`absolute top-3 -right-1.5 w-3 h-3 rotate-45 ${arrowBg} border-r border-t border-white/10 rounded-tr-sm`}
+            />
+          ) : (
+            <div
+              className={`absolute top-3 -left-1.5 w-3 h-3 rotate-45 ${arrowBg} border-l border-b border-white/10 rounded-bl-sm`}
+            />
+          )}
           {bookmark.children.slice(0, 12).map((child) =>
             child.isFolder ? (
               <NestedFolder key={child.id} bookmark={child} onClose={onClose} />
@@ -103,7 +114,8 @@ function NestedFolder({ bookmark, onClose }: { bookmark: BookmarkType; onClose: 
 
 // Top-level folder component (shows in bookmark bar)
 function BookmarkFolder({ bookmark, iconOnly }: { bookmark: BookmarkType; iconOnly: boolean }) {
-  const { dropdown, menuItem } = useDropdownTheme();
+  const { dropdown, menuItem, isDark } = useDropdownTheme();
+  const arrowBg = isDark ? 'bg-neutral-900' : 'bg-white';
   const [isOpen, setIsOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -143,11 +155,23 @@ function BookmarkFolder({ bookmark, iconOnly }: { bookmark: BookmarkType; iconOn
       {/* Dropdown */}
       {isOpen && (
         <div
-          className={`absolute left-0 z-50 min-w-44 max-w-64 max-h-80 overflow-y-auto scrollbar-thin rounded-lg ${dropdown} py-1.5 shadow-xl ${
-            openUpward ? 'bottom-full mb-1' : 'top-full mt-1'
+          className={`absolute left-0 z-50 min-w-44 max-w-64 max-h-80 overflow-y-auto scrollbar-thin rounded-lg ${dropdown} py-1.5 shadow-xl overflow-visible ${
+            openUpward ? 'bottom-full mb-2' : 'top-full mt-2'
           }`}
           style={{ animation: openUpward ? 'fadeInUp 150ms ease-out' : 'fadeIn 150ms ease-out' }}
         >
+          {/* Arrow */}
+          {openUpward ? (
+            <div
+              className={`absolute -bottom-1.5 left-3 w-3 h-3 rotate-45 ${arrowBg} rounded-br-sm`}
+              style={{ boxShadow: '1px 1px 1px rgba(0,0,0,0.1)' }}
+            />
+          ) : (
+            <div
+              className={`absolute -top-1.5 left-3 w-3 h-3 rotate-45 ${arrowBg} rounded-tl-sm`}
+              style={{ boxShadow: '-1px -1px 1px rgba(0,0,0,0.1)' }}
+            />
+          )}
           {bookmark.children && bookmark.children.length > 0 ? (
             bookmark.children.slice(0, 15).map((child) =>
               child.isFolder ? (
@@ -325,9 +349,14 @@ export function Bookmarks() {
       {showConfig && createPortal(
         <div
           ref={configPopupRef}
-          className={`fixed z-[100] w-44 rounded-lg ${dropdown} py-2 shadow-xl`}
+          className={`fixed z-[100] w-44 rounded-lg ${dropdown} py-2 shadow-xl overflow-visible`}
           style={{ top: configPosition.top, left: configPosition.left }}
         >
+          {/* Arrow pointing up */}
+          <div
+            className="absolute -top-1.5 right-3 w-3 h-3 rotate-45 bg-inherit rounded-tl-sm"
+            style={{ boxShadow: '-1px -1px 1px rgba(0,0,0,0.1)' }}
+          />
           <p className={`px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider ${sectionLabel}`}>
             Display
           </p>

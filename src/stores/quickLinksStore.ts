@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { QuickLink, LinkGroup } from '@/types';
+import { chromeStorage } from '@/lib/chromeStorage';
+
+// Result type for operations that might fail silently
+export type OperationResult = { success: true } | { success: false; reason: string };
 
 interface QuickLinksState {
   links: QuickLink[];
@@ -16,17 +20,17 @@ interface QuickLinksState {
   // Group actions
   addGroup: (name: string, color?: string) => void;
   updateGroup: (id: string, updates: Partial<Omit<LinkGroup, 'id'>>) => void;
-  deleteGroup: (id: string) => void;
+  deleteGroup: (id: string) => OperationResult;
 
   // View mode
   setViewMode: (mode: 'tile' | 'list') => void;
 
-  // Pinning actions
-  pinLink: (id: string) => void;
+  // Pinning actions (return result for feedback)
+  pinLink: (id: string) => OperationResult;
   unpinLink: (id: string) => void;
-  pinGroup: (id: string) => void;
+  pinGroup: (id: string) => OperationResult;
   unpinGroup: (id: string) => void;
-  reorderPinned: (items: Array<{ type: 'link' | 'group'; id: string }>) => void;
+  reorderPinned: (items: Array<{ type: 'link' | 'group'; id: string }>) => OperationResult;
 }
 
 // Generate unique ID
@@ -54,31 +58,6 @@ function getFaviconUrl(url: string): string {
     return '';
   }
 }
-
-// Chrome storage adapter
-const chromeStorage = {
-  getItem: async (name: string): Promise<string | null> => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      const result = await chrome.storage.local.get(name);
-      return result[name] ?? null;
-    }
-    return localStorage.getItem(name);
-  },
-  setItem: async (name: string, value: string): Promise<void> => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.set({ [name]: value });
-    } else {
-      localStorage.setItem(name, value);
-    }
-  },
-  removeItem: async (name: string): Promise<void> => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.remove(name);
-    } else {
-      localStorage.removeItem(name);
-    }
-  },
-};
 
 // Max pinned items
 const MAX_PINNED = 5;
@@ -182,6 +161,13 @@ export const useQuickLinksStore = create<QuickLinksState>()(
       },
 
       deleteGroup: (id) => {
+        const state = get();
+        const group = state.groups.find(g => g.id === id);
+
+        if (!group) {
+          return { success: false, reason: 'Group not found' };
+        }
+
         set((state) => ({
           groups: state.groups.filter((group) => group.id !== id),
           // Unassign links from deleted group
@@ -189,6 +175,8 @@ export const useQuickLinksStore = create<QuickLinksState>()(
             link.groupId === id ? { ...link, groupId: undefined } : link
           ),
         }));
+
+        return { success: true };
       },
 
       setViewMode: (mode) => {
@@ -197,7 +185,22 @@ export const useQuickLinksStore = create<QuickLinksState>()(
 
       pinLink: (id) => {
         const { links, groups } = get();
-        if (countPinned(links, groups) >= MAX_PINNED) return;
+
+        // Check if link exists
+        const link = links.find(l => l.id === id);
+        if (!link) {
+          return { success: false, reason: 'Link not found' };
+        }
+
+        // Check if already pinned
+        if (link.pinned) {
+          return { success: false, reason: 'Link is already pinned' };
+        }
+
+        // Check max pinned limit
+        if (countPinned(links, groups) >= MAX_PINNED) {
+          return { success: false, reason: `Maximum of ${MAX_PINNED} pinned items reached` };
+        }
 
         set((state) => ({
           links: state.links.map((link) =>
@@ -210,6 +213,8 @@ export const useQuickLinksStore = create<QuickLinksState>()(
               : link
           ),
         }));
+
+        return { success: true };
       },
 
       unpinLink: (id) => {
@@ -224,7 +229,22 @@ export const useQuickLinksStore = create<QuickLinksState>()(
 
       pinGroup: (id) => {
         const { links, groups } = get();
-        if (countPinned(links, groups) >= MAX_PINNED) return;
+
+        // Check if group exists
+        const group = groups.find(g => g.id === id);
+        if (!group) {
+          return { success: false, reason: 'Group not found' };
+        }
+
+        // Check if already pinned
+        if (group.pinned) {
+          return { success: false, reason: 'Group is already pinned' };
+        }
+
+        // Check max pinned limit
+        if (countPinned(links, groups) >= MAX_PINNED) {
+          return { success: false, reason: `Maximum of ${MAX_PINNED} pinned items reached` };
+        }
 
         set((state) => ({
           groups: state.groups.map((group) =>
@@ -237,6 +257,8 @@ export const useQuickLinksStore = create<QuickLinksState>()(
               : group
           ),
         }));
+
+        return { success: true };
       },
 
       unpinGroup: (id) => {
@@ -250,6 +272,35 @@ export const useQuickLinksStore = create<QuickLinksState>()(
       },
 
       reorderPinned: (items) => {
+        const { links, groups } = get();
+
+        // Validate all items exist before reordering
+        const invalidItems: string[] = [];
+        for (const item of items) {
+          if (item.type === 'link') {
+            const link = links.find(l => l.id === item.id);
+            if (!link) {
+              invalidItems.push(`Link ${item.id}`);
+            } else if (!link.pinned) {
+              invalidItems.push(`Link ${item.id} is not pinned`);
+            }
+          } else {
+            const group = groups.find(g => g.id === item.id);
+            if (!group) {
+              invalidItems.push(`Group ${item.id}`);
+            } else if (!group.pinned) {
+              invalidItems.push(`Group ${item.id} is not pinned`);
+            }
+          }
+        }
+
+        if (invalidItems.length > 0) {
+          if (import.meta.env.DEV) {
+            console.warn('[QuickLinksStore] reorderPinned: Invalid items:', invalidItems);
+          }
+          return { success: false, reason: `Invalid items: ${invalidItems.join(', ')}` };
+        }
+
         set((state) => {
           const newLinks = [...state.links];
           const newGroups = [...state.groups];
@@ -276,6 +327,8 @@ export const useQuickLinksStore = create<QuickLinksState>()(
 
           return { links: newLinks, groups: newGroups };
         });
+
+        return { success: true };
       },
     }),
     {

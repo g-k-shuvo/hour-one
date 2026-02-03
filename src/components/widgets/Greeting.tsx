@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MoreHorizontal, Heart, Pin, SkipForward, EyeOff, Settings, Sparkles, Edit3 } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useMantraStore } from '@/stores/mantraStore';
-import { Dropdown, DropdownItem, DropdownDivider } from '@/components/ui/Dropdown';
-import { useClickOutside } from '@/hooks/useClickOutside';
+import { AdaptiveDropdown, DropdownItem, DropdownDivider, DropdownContainer } from '@/components/ui/Dropdown';
 
 export function Greeting() {
   const { userName } = useSettingsStore();
@@ -23,10 +22,7 @@ export function Greeting() {
 
   const [greeting, setGreeting] = useState(getGreeting());
   const [showMenu, setShowMenu] = useState(false);
-  const menuContainerRef = useRef<HTMLDivElement>(null);
-
-  const handleCloseMenu = useCallback(() => setShowMenu(false), []);
-  useClickOutside(menuContainerRef, handleCloseMenu, showMenu);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     // Update greeting every minute in case hour changes
@@ -115,8 +111,13 @@ export function Greeting() {
       </div>
 
       {/* Triple-dot button - absolute positioned on right */}
-      <div ref={menuContainerRef} className="absolute -right-8 top-1/2 -translate-y-1/2">
+      <DropdownContainer
+        isOpen={showMenu}
+        onClose={() => setShowMenu(false)}
+        className="absolute -right-8 top-1/2 -translate-y-1/2"
+      >
         <button
+          ref={menuButtonRef}
           onClick={() => setShowMenu(!showMenu)}
           className={`rounded-full p-1 transition-all hover:bg-white/10 hover:text-white/60 ${
             showMenu ? 'opacity-100 text-white/60' : 'opacity-0 group-hover:opacity-100 text-white/40'
@@ -126,54 +127,52 @@ export function Greeting() {
           <MoreHorizontal size={16} />
         </button>
 
-        {/* Dropdown menu */}
-        {showMenu && (
-          <Dropdown position="left">
-            {showMantra ? (
-              // Mantra mode menu
-              <>
-                <DropdownItem onClick={handleFavorite}>
-                  <Heart size={14} className={isFavorite ? 'fill-red-500 text-red-500' : ''} />
-                  <span>{isFavorite ? 'Unfavorite' : 'Favorite'}</span>
-                </DropdownItem>
-                <DropdownItem onClick={handlePin}>
-                  <Pin size={14} className={isPinned ? 'fill-blue-500 text-blue-500' : ''} />
-                  <span>{isPinned ? 'Unpin' : 'Pin'}</span>
-                </DropdownItem>
-                <DropdownItem onClick={handleSkip}>
-                  <SkipForward size={14} />
-                  <span>Skip mantra</span>
-                </DropdownItem>
-                <DropdownItem onClick={handleHide}>
-                  <EyeOff size={14} />
-                  <span>Don't show again</span>
-                </DropdownItem>
-                <DropdownDivider />
-                <DropdownItem onClick={handleShowGreeting}>
-                  <Edit3 size={14} />
-                  <span>Show greeting</span>
-                </DropdownItem>
-                <DropdownItem onClick={handleMantraSettings}>
-                  <Settings size={14} />
-                  <span>Mantra settings</span>
-                </DropdownItem>
-              </>
-            ) : (
-              // Greeting mode menu
-              <>
-                <DropdownItem onClick={handleShowMantra}>
-                  <Sparkles size={14} />
-                  <span>Show today's mantra</span>
-                </DropdownItem>
-                <DropdownItem onClick={handleEditName}>
-                  <Edit3 size={14} />
-                  <span>Edit name</span>
-                </DropdownItem>
-              </>
-            )}
-          </Dropdown>
-        )}
-      </div>
+        {/* Dropdown menu - rendered via portal */}
+        <AdaptiveDropdown triggerRef={menuButtonRef} isOpen={showMenu} preferredPosition="left" usePortal>
+          {showMantra ? (
+            // Mantra mode menu
+            <>
+              <DropdownItem onClick={handleFavorite}>
+                <Heart size={14} className={isFavorite ? 'fill-red-500 text-red-500' : ''} />
+                <span>{isFavorite ? 'Unfavorite' : 'Favorite'}</span>
+              </DropdownItem>
+              <DropdownItem onClick={handlePin}>
+                <Pin size={14} className={isPinned ? 'fill-blue-500 text-blue-500' : ''} />
+                <span>{isPinned ? 'Unpin' : 'Pin'}</span>
+              </DropdownItem>
+              <DropdownItem onClick={handleSkip}>
+                <SkipForward size={14} />
+                <span>Skip mantra</span>
+              </DropdownItem>
+              <DropdownItem onClick={handleHide}>
+                <EyeOff size={14} />
+                <span>Don't show again</span>
+              </DropdownItem>
+              <DropdownDivider />
+              <DropdownItem onClick={handleShowGreeting}>
+                <Edit3 size={14} />
+                <span>Show greeting</span>
+              </DropdownItem>
+              <DropdownItem onClick={handleMantraSettings}>
+                <Settings size={14} />
+                <span>Mantra settings</span>
+              </DropdownItem>
+            </>
+          ) : (
+            // Greeting mode menu
+            <>
+              <DropdownItem onClick={handleShowMantra}>
+                <Sparkles size={14} />
+                <span>Show today's mantra</span>
+              </DropdownItem>
+              <DropdownItem onClick={handleEditName}>
+                <Edit3 size={14} />
+                <span>Edit name</span>
+              </DropdownItem>
+            </>
+          )}
+        </AdaptiveDropdown>
+      </DropdownContainer>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { chromeStorage } from '@/lib/chromeStorage';
 
 interface WidgetVisibility {
   clock: boolean;
@@ -64,33 +65,6 @@ interface SettingsState {
   setWidgetVisibility: (widget: keyof WidgetVisibility, visible: boolean) => void;
   setTopTaskInCenter: (enabled: boolean) => void;
 }
-
-// Chrome storage adapter for Zustand
-const chromeStorage = {
-  getItem: async (name: string): Promise<string | null> => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      const result = await chrome.storage.local.get(name);
-      return result[name] ?? null;
-    }
-    // Fallback to localStorage for development
-    return localStorage.getItem(name);
-  },
-  setItem: async (name: string, value: string): Promise<void> => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.set({ [name]: value });
-    } else {
-      // Fallback to localStorage for development
-      localStorage.setItem(name, value);
-    }
-  },
-  removeItem: async (name: string): Promise<void> => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.remove(name);
-    } else {
-      localStorage.removeItem(name);
-    }
-  },
-};
 
 export const useSettingsStore = create<SettingsState>()(
   persist(

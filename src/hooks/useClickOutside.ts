@@ -1,15 +1,32 @@
-import { useEffect, RefObject } from 'react';
+import { useEffect, useRef, RefObject } from 'react';
 
 /**
  * Hook that handles clicking outside of the specified element(s)
  * Uses document event listener instead of a blocking backdrop
  * Supports multiple refs for cases like portals where content is in different DOM locations
+ *
+ * IMPORTANT: The handler function should be memoized using useCallback to avoid
+ * re-registering the event listener on every render. Example:
+ *
+ * ```tsx
+ * const handleClose = useCallback(() => setIsOpen(false), []);
+ * useClickOutside(ref, handleClose, isOpen);
+ * ```
+ *
+ * @param refs - Single ref or array of refs to elements that should not trigger close
+ * @param handler - Callback to invoke when clicking outside (should be wrapped in useCallback)
+ * @param enabled - Whether the click outside handler is active (default: true)
  */
 export function useClickOutside(
   refs: RefObject<HTMLElement | null> | RefObject<HTMLElement | null>[],
   handler: () => void,
   enabled: boolean = true
 ) {
+  // Store handler in ref to avoid effect re-running on handler change
+  const handlerRef = useRef(handler);
+  useEffect(() => {
+    handlerRef.current = handler;
+  }, [handler]);
   useEffect(() => {
     if (!enabled) return;
 
@@ -22,7 +39,7 @@ export function useClickOutside(
       });
 
       if (!isInside) {
-        handler();
+        handlerRef.current();
       }
     };
 
@@ -32,5 +49,5 @@ export function useClickOutside(
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [refs, handler, enabled]);
+  }, [refs, enabled]); // handler is accessed via ref, no need in deps
 }
