@@ -89,7 +89,7 @@ This document tracks the implementation progress of all features for the Hour On
 
 | # | Feature | Status | Files | Notes |
 |---|---------|--------|-------|-------|
-| 4.12 | World Clocks | ⏳ | - | Multiple timezone display |
+| 4.12 | World Clocks | ✅ | `WorldClocks.tsx`, `worldClocksStore.ts` | 35 timezones, day/night, relative offset |
 | 4.13 | Countdown Timers | ⏳ | - | Event countdowns |
 | 4.14 | Premium Weather | ⏳ | - | Extended forecasts, alerts |
 
@@ -141,11 +141,11 @@ This document tracks the implementation progress of all features for the Hour On
 | Phase 1: Foundation | 6 | 6 | 0 | 0 |
 | Phase 2: Free Features | 11 | 11 | 0 | 0 |
 | Phase 3: Pro Infrastructure | 5 | 0 | 0 | 5 |
-| Phase 4: Pro Features | 21 | 5 | 0 | 16 |
+| Phase 4: Pro Features | 21 | 6 | 0 | 15 |
 | Phase 5: Polish & Launch | 10 | 2 | 0 | 8 |
-| **Total** | **53** | **24** | **0** | **29** |
+| **Total** | **53** | **25** | **0** | **28** |
 
-**Overall Progress: 45% Complete (24/53 features)**
+**Overall Progress: 47% Complete (25/53 features)**
 
 ---
 
@@ -170,7 +170,8 @@ src/
 │   │   ├── Soundscapes.tsx ✅
 │   │   ├── TabStash.tsx ✅
 │   │   ├── TodoList.tsx ✅
-│   │   └── Weather.tsx ✅
+│   │   ├── Weather.tsx ✅
+│   │   └── WorldClocks.tsx ✅
 │   └── ui/
 │       ├── Dropdown.tsx ✅
 │       ├── Onboarding.tsx ✅
@@ -200,7 +201,8 @@ src/
 │   ├── soundscapeStore.ts ✅
 │   ├── tabStashStore.ts ✅
 │   ├── todosStore.ts ✅
-│   └── weatherStore.ts ✅
+│   ├── weatherStore.ts ✅
+│   └── worldClocksStore.ts ✅
 ├── types/
 │   └── index.ts ✅
 ├── utils/
@@ -214,11 +216,11 @@ src/
 
 ## Next Up (Recommended Order)
 
-1. **4.12 World Clocks** - Multiple timezone display
-2. **4.13 Countdown Timers** - Event countdowns
-3. **4.8 Habit Tracker** - Daily habits, streaks
-4. **4.4 Widget Drag & Drop** - Repositionable widgets
-5. **4.7 Autofocus Mode** - Sequential task focus
+1. **4.13 Countdown Timers** - Event countdowns
+2. **4.8 Habit Tracker** - Daily habits, streaks
+3. **4.4 Widget Drag & Drop** - Repositionable widgets
+4. **4.7 Autofocus Mode** - Sequential task focus
+5. **4.10 Balance Mode** - Work-life balance tracking
 
 ---
 
