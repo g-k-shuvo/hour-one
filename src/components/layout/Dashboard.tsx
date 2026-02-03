@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckSquare, ExternalLink, MapPin, Search, Target, SlidersHorizontal, Play, Settings, Layers, Globe, Timer, Flame, Scale } from 'lucide-react';
+import { CheckSquare, ExternalLink, MapPin, Search, Target, SlidersHorizontal, Play, Settings, Layers, Globe, Timer, Flame, Scale, BarChart3 } from 'lucide-react';
 import { Clock } from '@/components/widgets/Clock';
 import { Greeting } from '@/components/widgets/Greeting';
 import { Focus } from '@/components/widgets/Focus';
@@ -19,6 +19,7 @@ import { HabitTrackerButton, HabitTrackerPanel, HabitTrackerHeaderActions } from
 import { FocusModeOverlay } from '@/components/widgets/FocusModeOverlay';
 import { AutofocusOverlay, AutofocusButton, useAutofocusKeyboard } from '@/components/widgets/AutofocusMode';
 import { BalancePanel, BalanceButton, BalanceHeaderActions, BreakReminderNotification } from '@/components/widgets/BalanceMode';
+import { MetricsPanel, MetricsButton, MetricsHeaderActions } from '@/components/widgets/MetricsDashboard';
 import { SettingsSidebar } from '@/components/ui/SettingsSidebar';
 import { Onboarding } from '@/components/ui/Onboarding';
 import { IconButton } from '@/components/ui/IconButton';
@@ -51,6 +52,7 @@ export function Dashboard() {
   const [showCountdowns, setShowCountdowns] = useState(false);
   const [showHabits, setShowHabits] = useState(false);
   const [showBalance, setShowBalance] = useState(false);
+  const [showMetrics, setShowMetrics] = useState(false);
   const [centerMode, setCenterMode] = useState<CenterMode>('focus');
   const [showModeToggle, setShowModeToggle] = useState(false);
 
@@ -170,6 +172,13 @@ export function Dashboard() {
                 label="Balance"
               />
             )}
+            {widgets.metrics && (
+              <IconButton
+                icon={BarChart3}
+                onClick={() => setShowMetrics(!showMetrics)}
+                label="Metrics"
+              />
+            )}
             <IconButton
               icon={Play}
               onClick={() => enterFocusMode(focus)}
@@ -182,8 +191,9 @@ export function Dashboard() {
             />
           </div>
 
-          {/* Top Right - Balance, Autofocus, Habits, Countdowns, World Clocks, Soundscapes and Weather */}
+          {/* Top Right - Metrics, Balance, Autofocus, Habits, Countdowns, World Clocks, Soundscapes and Weather */}
           <div className="flex items-center gap-3">
+            {widgets.metrics && <MetricsButton />}
             {widgets.balance && <BalanceButton />}
             {widgets.todos && <AutofocusButton />}
             {widgets.habits && <HabitTrackerButton />}
@@ -450,6 +460,18 @@ export function Dashboard() {
           headerActions={<BalanceHeaderActions onClose={() => setShowBalance(false)} />}
         >
           <BalancePanel />
+        </PopupPanel>
+
+        {/* Metrics Popup */}
+        <PopupPanel
+          isOpen={showMetrics && widgets.metrics}
+          onClose={() => setShowMetrics(false)}
+          position="top-left"
+          title="Metrics"
+          maxWidth="max-w-md"
+          headerActions={<MetricsHeaderActions onClose={() => setShowMetrics(false)} />}
+        >
+          <MetricsPanel />
         </PopupPanel>
 
         {/* Break Reminder Notification */}

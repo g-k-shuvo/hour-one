@@ -18,6 +18,7 @@ interface WidgetVisibility {
   countdowns: boolean;
   habits: boolean;
   balance: boolean;
+  metrics: boolean;
 }
 
 export type AnalogClockVariant = 'classic' | 'minimal' | 'modern' | 'roman' | 'numbered' | 'badge';
@@ -114,6 +115,7 @@ export const useSettingsStore = create<SettingsState>()(
         countdowns: true,
         habits: true,
         balance: true,
+        metrics: true,
       },
 
       // Actions

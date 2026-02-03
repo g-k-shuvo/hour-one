@@ -10,6 +10,7 @@ import { useHabitStore, calculateStreak } from '@/stores/habitStore';
 import { useBalanceStore, formatDuration, getScoreLabel } from '@/stores/balanceStore';
 import { useLayoutStore, type CenterWidgetId } from '@/stores/layoutStore';
 import { getMantraById, getAllMantras } from '@/services/mantrasService';
+import { getProductivityScore, getTaskMetrics, getFocusMetrics, getHabitMetrics } from '@/services/metricsService';
 import { Toggle } from './Toggle';
 import { IconButton } from './IconButton';
 
@@ -42,7 +43,8 @@ type SettingsSection =
   | 'worldclocks'
   | 'countdowns'
   | 'habits'
-  | 'balance';
+  | 'balance'
+  | 'metrics';
 
 interface NavItemProps {
   label: string;
@@ -932,6 +934,75 @@ export function SettingsSidebar() {
           </div>
         );
 
+      case 'metrics':
+        const productivityScore = getProductivityScore();
+        const taskMetrics = getTaskMetrics();
+        const focusMetrics = getFocusMetrics();
+        const habitMetrics = getHabitMetrics();
+        return (
+          <div>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Metrics</h3>
+            <p className="text-sm text-theme-secondary mb-6">Productivity analytics</p>
+
+            <div className="divide-y divide-white/10">
+              <Toggle
+                enabled={widgets.metrics}
+                onChange={() => toggleWidget('metrics')}
+                title="Show Metrics"
+                description="Display productivity dashboard button"
+              />
+            </div>
+
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-sm font-medium text-theme-primary">
+                  Productivity Score
+                </label>
+                <span className="text-lg font-bold text-accent">
+                  {productivityScore.overall}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-3 bg-theme-secondary rounded-lg text-center">
+                  <p className="text-xl font-bold text-theme-primary">{productivityScore.taskScore}</p>
+                  <p className="text-xs text-theme-muted">Tasks</p>
+                </div>
+                <div className="p-3 bg-theme-secondary rounded-lg text-center">
+                  <p className="text-xl font-bold text-theme-primary">{productivityScore.focusScore}</p>
+                  <p className="text-xs text-theme-muted">Focus</p>
+                </div>
+                <div className="p-3 bg-theme-secondary rounded-lg text-center">
+                  <p className="text-xl font-bold text-theme-primary">{productivityScore.habitScore}</p>
+                  <p className="text-xs text-theme-muted">Habits</p>
+                </div>
+                <div className="p-3 bg-theme-secondary rounded-lg text-center">
+                  <p className="text-xl font-bold text-theme-primary">{productivityScore.balanceScore}</p>
+                  <p className="text-xs text-theme-muted">Balance</p>
+                </div>
+              </div>
+
+              <div className="mt-4 p-3 bg-theme-secondary rounded-lg">
+                <p className="text-xs text-theme-muted mb-2">Quick Stats</p>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-theme-secondary">Tasks completed today</span>
+                    <span className="text-theme-primary font-medium">{taskMetrics.completedToday}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-theme-secondary">Focus time today</span>
+                    <span className="text-theme-primary font-medium">{formatDuration(focusMetrics.focusMinutesToday)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-theme-secondary">Habits completed today</span>
+                    <span className="text-theme-primary font-medium">{habitMetrics.completedToday}/{habitMetrics.activeHabits}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -1045,6 +1116,11 @@ export function SettingsSidebar() {
                       label="Balance"
                       active={activeSection === 'balance'}
                       onClick={() => setActiveSection('balance')}
+                    />
+                    <NavItem
+                      label="Metrics"
+                      active={activeSection === 'metrics'}
+                      onClick={() => setActiveSection('metrics')}
                     />
                   </nav>
 
