@@ -17,6 +17,7 @@ import { WorldClocksButton, WorldClocksPanel, WorldClocksHeaderActions } from '@
 import { CountdownButton, CountdownPanel, CountdownHeaderActions } from '@/components/widgets/Countdown';
 import { HabitTrackerButton, HabitTrackerPanel, HabitTrackerHeaderActions } from '@/components/widgets/HabitTracker';
 import { FocusModeOverlay } from '@/components/widgets/FocusModeOverlay';
+import { AutofocusOverlay, AutofocusButton, useAutofocusKeyboard } from '@/components/widgets/AutofocusMode';
 import { SettingsSidebar } from '@/components/ui/SettingsSidebar';
 import { Onboarding } from '@/components/ui/Onboarding';
 import { IconButton } from '@/components/ui/IconButton';
@@ -56,6 +57,9 @@ export function Dashboard() {
   // Drag and drop for center widgets
   const dragHandlers = useDragReorder(swapCenterWidgets);
 
+  // Autofocus keyboard shortcuts
+  useAutofocusKeyboard();
+
   // Determine if we should show the toggle (both focus and search are enabled)
   const showToggle = widgets.focus && widgets.search;
   const showFocus = centerMode === 'focus' && widgets.focus;
@@ -78,6 +82,9 @@ export function Dashboard() {
 
       {/* Focus Mode Overlay */}
       <FocusModeOverlay />
+
+      {/* Autofocus Mode Overlay */}
+      <AutofocusOverlay />
 
       {/* Settings Sidebar - rendered outside main to work during focus mode */}
       <SettingsSidebar />
@@ -166,8 +173,9 @@ export function Dashboard() {
             />
           </div>
 
-          {/* Top Right - Habits, Countdowns, World Clocks, Soundscapes and Weather */}
+          {/* Top Right - Autofocus, Habits, Countdowns, World Clocks, Soundscapes and Weather */}
           <div className="flex items-center gap-3">
+            {widgets.todos && <AutofocusButton />}
             {widgets.habits && <HabitTrackerButton />}
             {widgets.countdowns && <CountdownButton />}
             {widgets.worldClocks && <WorldClocksButton />}
