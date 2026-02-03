@@ -4,6 +4,7 @@ import { useSettingsStore, ACCENT_COLORS, type ThemeMode, type AccentColor } fro
 import { useMantraStore } from '@/stores/mantraStore';
 import { useSoundscapeStore, SOUNDSCAPES } from '@/stores/soundscapeStore';
 import { useTabStashStore } from '@/stores/tabStashStore';
+import { useWorldClocksStore } from '@/stores/worldClocksStore';
 import { getMantraById, getAllMantras } from '@/services/mantrasService';
 import { Toggle } from './Toggle';
 import { IconButton } from './IconButton';
@@ -32,7 +33,8 @@ type SettingsSection =
   | 'links'
   | 'tasks'
   | 'soundscapes'
-  | 'tabstash';
+  | 'tabstash'
+  | 'worldclocks';
 
 interface NavItemProps {
   label: string;
@@ -104,6 +106,10 @@ export function SettingsSidebar() {
     isApiAvailable: tabStashApiAvailable,
     requestPermission: requestTabStashPermission,
   } = useTabStashStore();
+
+  const {
+    clocks: worldClocks,
+  } = useWorldClocksStore();
 
   // Listen for openSettings event from other components
   useEffect(() => {
@@ -630,6 +636,54 @@ export function SettingsSidebar() {
           </div>
         );
 
+      case 'worldclocks':
+        return (
+          <div>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">World Clocks</h3>
+            <p className="text-sm text-theme-secondary mb-6">Display multiple timezone clocks</p>
+
+            <div className="divide-y divide-white/10">
+              <Toggle
+                enabled={widgets.worldClocks}
+                onChange={() => toggleWidget('worldClocks')}
+                title="Show World Clocks"
+                description="Display world clocks on dashboard"
+              />
+            </div>
+
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-sm font-medium text-theme-primary">
+                  Active Clocks
+                </label>
+                <span className="text-xs text-theme-muted">
+                  {worldClocks.length} clock{worldClocks.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+
+              {worldClocks.length === 0 ? (
+                <p className="text-sm text-theme-muted">
+                  No world clocks added yet. Click the globe icon on your dashboard to add clocks.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {worldClocks.map((clock) => (
+                    <div
+                      key={clock.id}
+                      className="flex items-center justify-between p-2 bg-theme-secondary rounded-lg"
+                    >
+                      <div>
+                        <p className="text-sm text-theme-primary">{clock.label}</p>
+                        <p className="text-xs text-theme-muted">{clock.timezone}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -718,6 +772,11 @@ export function SettingsSidebar() {
                       label="Tab Stash"
                       active={activeSection === 'tabstash'}
                       onClick={() => setActiveSection('tabstash')}
+                    />
+                    <NavItem
+                      label="World Clocks"
+                      active={activeSection === 'worldclocks'}
+                      onClick={() => setActiveSection('worldclocks')}
                     />
                   </nav>
 

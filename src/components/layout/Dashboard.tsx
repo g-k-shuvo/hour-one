@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckSquare, ExternalLink, MapPin, Search, Target, SlidersHorizontal, Play, Settings, Layers } from 'lucide-react';
+import { CheckSquare, ExternalLink, MapPin, Search, Target, SlidersHorizontal, Play, Settings, Layers, Globe } from 'lucide-react';
 import { Clock } from '@/components/widgets/Clock';
 import { Greeting } from '@/components/widgets/Greeting';
 import { Focus } from '@/components/widgets/Focus';
@@ -13,6 +13,7 @@ import { Bookmarks } from '@/components/widgets/Bookmarks';
 import { Background } from '@/components/widgets/Background';
 import { SoundscapesDropdown } from '@/components/widgets/Soundscapes';
 import { TabStashPanel, TabStashHeaderActions } from '@/components/widgets/TabStash';
+import { WorldClocksButton, WorldClocksPanel, WorldClocksHeaderActions } from '@/components/widgets/WorldClocks';
 import { FocusModeOverlay } from '@/components/widgets/FocusModeOverlay';
 import { SettingsSidebar } from '@/components/ui/SettingsSidebar';
 import { Onboarding } from '@/components/ui/Onboarding';
@@ -39,6 +40,7 @@ export function Dashboard() {
   const [showTodos, setShowTodos] = useState(false);
   const [showLinks, setShowLinks] = useState(false);
   const [showTabStash, setShowTabStash] = useState(false);
+  const [showWorldClocks, setShowWorldClocks] = useState(false);
   const [centerMode, setCenterMode] = useState<CenterMode>('focus');
   const [showModeToggle, setShowModeToggle] = useState(false);
 
@@ -121,6 +123,13 @@ export function Dashboard() {
               onClick={() => setShowTabStash(!showTabStash)}
               label="Tab Stash"
             />
+            {widgets.worldClocks && (
+              <IconButton
+                icon={Globe}
+                onClick={() => setShowWorldClocks(!showWorldClocks)}
+                label="World Clocks"
+              />
+            )}
             <IconButton
               icon={Play}
               onClick={() => enterFocusMode(focus)}
@@ -133,8 +142,9 @@ export function Dashboard() {
             />
           </div>
 
-          {/* Top Right - Soundscapes and Weather */}
+          {/* Top Right - World Clocks, Soundscapes and Weather */}
           <div className="flex items-center gap-3">
+            {widgets.worldClocks && <WorldClocksButton />}
             {widgets.soundscapes && <SoundscapesDropdown />}
             <div className="flex items-center gap-4">
               {weather?.location && (
@@ -328,6 +338,18 @@ export function Dashboard() {
           headerActions={<TabStashHeaderActions onClose={() => setShowTabStash(false)} />}
         >
           <TabStashPanel />
+        </PopupPanel>
+
+        {/* World Clocks Popup */}
+        <PopupPanel
+          isOpen={showWorldClocks && widgets.worldClocks}
+          onClose={() => setShowWorldClocks(false)}
+          position="top-left"
+          title="World Clocks"
+          maxWidth="max-w-sm"
+          headerActions={<WorldClocksHeaderActions onClose={() => setShowWorldClocks(false)} />}
+        >
+          <WorldClocksPanel />
         </PopupPanel>
       </main>
 

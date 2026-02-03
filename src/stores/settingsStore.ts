@@ -14,6 +14,7 @@ interface WidgetVisibility {
   bookmarks: boolean;
   soundscapes: boolean;
   tabStash: boolean;
+  worldClocks: boolean;
 }
 
 export type AnalogClockVariant = 'classic' | 'minimal' | 'modern' | 'roman' | 'numbered' | 'badge';
@@ -106,6 +107,7 @@ export const useSettingsStore = create<SettingsState>()(
         bookmarks: true,
         soundscapes: true,
         tabStash: true,
+        worldClocks: true,
       },
 
       // Actions
