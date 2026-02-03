@@ -11,6 +11,7 @@ import { SearchBar } from '@/components/widgets/SearchBar';
 import { Weather } from '@/components/widgets/Weather';
 import { Bookmarks } from '@/components/widgets/Bookmarks';
 import { Background } from '@/components/widgets/Background';
+import { SoundscapesDropdown } from '@/components/widgets/Soundscapes';
 import { FocusModeOverlay } from '@/components/widgets/FocusModeOverlay';
 import { SettingsSidebar } from '@/components/ui/SettingsSidebar';
 import { Onboarding } from '@/components/ui/Onboarding';
@@ -125,9 +126,10 @@ export function Dashboard() {
             />
           </div>
 
-          {/* Top Right - Compact Weather */}
-          <div className="flex gap-4">
-          <div className="flex items-center gap-4">
+          {/* Top Right - Soundscapes and Weather */}
+          <div className="flex items-center gap-3">
+            {widgets.soundscapes && <SoundscapesDropdown />}
+            <div className="flex items-center gap-4">
               {weather?.location && (
                 <div className="flex items-center gap-1.5 text-white/50 text-sm">
                   <MapPin size={14} />

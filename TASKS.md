@@ -113,7 +113,7 @@ This document tracks the implementation progress of all features for the Hour On
 
 | # | Feature | Status | Files | Notes |
 |---|---------|--------|-------|-------|
-| 4.21 | Soundscapes | ⏳ | - | Ambient sounds (rain, forest, etc.) |
+| 4.21 | Soundscapes | ✅ | `Soundscapes.tsx`, `soundscapeStore.ts` | 8 ambient sounds with volume control |
 
 ---
 
@@ -141,11 +141,11 @@ This document tracks the implementation progress of all features for the Hour On
 | Phase 1: Foundation | 6 | 6 | 0 | 0 |
 | Phase 2: Free Features | 11 | 11 | 0 | 0 |
 | Phase 3: Pro Infrastructure | 5 | 0 | 0 | 5 |
-| Phase 4: Pro Features | 21 | 2 | 0 | 19 |
+| Phase 4: Pro Features | 21 | 3 | 0 | 18 |
 | Phase 5: Polish & Launch | 10 | 2 | 0 | 8 |
-| **Total** | **53** | **21** | **0** | **32** |
+| **Total** | **53** | **22** | **0** | **31** |
 
-**Overall Progress: 40% Complete (21/53 features)**
+**Overall Progress: 42% Complete (22/53 features)**
 
 ---
 
@@ -167,6 +167,7 @@ src/
 │   │   ├── QuickLinks.tsx ✅
 │   │   ├── Quote.tsx ✅
 │   │   ├── SearchBar.tsx ✅
+│   │   ├── Soundscapes.tsx ✅
 │   │   ├── TodoList.tsx ✅
 │   │   └── Weather.tsx ✅
 │   └── ui/
@@ -195,6 +196,7 @@ src/
 │   ├── quickLinksStore.ts ✅
 │   ├── quoteStore.ts ✅
 │   ├── settingsStore.ts ✅
+│   ├── soundscapeStore.ts ✅
 │   ├── todosStore.ts ✅
 │   └── weatherStore.ts ✅
 ├── types/
@@ -210,11 +212,11 @@ src/
 
 ## Next Up (Recommended Order)
 
-1. **4.21 Soundscapes** - Ambient sounds for focus
-2. **4.11 Tab Stash** - Save/restore tab sessions (unique browser feature)
-3. **4.6 Advanced To-Do Lists** - Multiple lists, priorities, due dates
-4. **4.12 World Clocks** - Multiple timezone display
-5. **4.13 Countdown Timers** - Event countdowns
+1. **4.11 Tab Stash** - Save/restore tab sessions (unique browser feature)
+2. **4.6 Advanced To-Do Lists** - Multiple lists, priorities, due dates
+3. **4.12 World Clocks** - Multiple timezone display
+4. **4.13 Countdown Timers** - Event countdowns
+5. **4.4 Widget Drag & Drop** - Repositionable widgets
 
 ---
 

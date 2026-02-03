@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Settings, X, User, HelpCircle, Info, Heart, Eye, Sun, Moon, Monitor, Check } from 'lucide-react';
 import { useSettingsStore, ACCENT_COLORS, type ThemeMode, type AccentColor } from '@/stores/settingsStore';
 import { useMantraStore } from '@/stores/mantraStore';
+import { useSoundscapeStore, SOUNDSCAPES } from '@/stores/soundscapeStore';
 import { getMantraById, getAllMantras } from '@/services/mantrasService';
 import { Toggle } from './Toggle';
 import { IconButton } from './IconButton';
@@ -28,7 +29,8 @@ type SettingsSection =
   | 'weather'
   | 'search'
   | 'links'
-  | 'tasks';
+  | 'tasks'
+  | 'soundscapes';
 
 interface NavItemProps {
   label: string;
@@ -84,6 +86,15 @@ export function SettingsSidebar() {
     toggleFavorite,
     unhideMantra,
   } = useMantraStore();
+
+  const {
+    enabled: soundscapesEnabled,
+    setEnabled: setSoundscapesEnabled,
+    volume: soundscapeVolume,
+    setVolume: setSoundscapeVolume,
+    currentSoundscapeId,
+    setCurrentSoundscape,
+  } = useSoundscapeStore();
 
   // Listen for openSettings event from other components
   useEffect(() => {
@@ -482,6 +493,75 @@ export function SettingsSidebar() {
           </div>
         );
 
+      case 'soundscapes':
+        return (
+          <div>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Soundscapes</h3>
+            <p className="text-sm text-theme-secondary mb-6">Ambient sounds for focus</p>
+
+            <div className="divide-y divide-white/10">
+              <Toggle
+                enabled={widgets.soundscapes}
+                onChange={() => toggleWidget('soundscapes')}
+                title="Show soundscapes"
+                description="Display soundscapes control in dashboard"
+              />
+              <Toggle
+                enabled={soundscapesEnabled}
+                onChange={() => setSoundscapesEnabled(!soundscapesEnabled)}
+                title="Enable audio"
+                description="Allow ambient sound playback"
+              />
+            </div>
+
+            {soundscapesEnabled && (
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-theme-primary mb-3">
+                  Volume
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={soundscapeVolume}
+                    onChange={(e) => setSoundscapeVolume(parseFloat(e.target.value))}
+                    className="flex-1 accent-accent"
+                  />
+                  <span className="text-sm text-theme-secondary w-12 text-right">
+                    {Math.round(soundscapeVolume * 100)}%
+                  </span>
+                </div>
+
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-theme-primary mb-3">
+                    Available Sounds
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {SOUNDSCAPES.map((sound) => (
+                      <button
+                        key={sound.id}
+                        onClick={() => setCurrentSoundscape(currentSoundscapeId === sound.id ? null : sound.id)}
+                        className={`flex items-center gap-2 p-2 rounded-lg text-left transition-colors ${
+                          currentSoundscapeId === sound.id
+                            ? 'bg-accent/20 ring-1 ring-accent'
+                            : 'bg-theme-secondary hover:bg-theme-tertiary'
+                        }`}
+                      >
+                        <span className="text-lg">{sound.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-theme-primary truncate">{sound.name}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
       default:
         return null;
     }
@@ -560,6 +640,11 @@ export function SettingsSidebar() {
                       label="Tasks"
                       active={activeSection === 'tasks'}
                       onClick={() => setActiveSection('tasks')}
+                    />
+                    <NavItem
+                      label="Soundscapes"
+                      active={activeSection === 'soundscapes'}
+                      onClick={() => setActiveSection('soundscapes')}
                     />
                   </nav>
 

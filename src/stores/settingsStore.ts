@@ -12,6 +12,7 @@ interface WidgetVisibility {
   quote: boolean;
   search: boolean;
   bookmarks: boolean;
+  soundscapes: boolean;
 }
 
 export type AnalogClockVariant = 'classic' | 'minimal' | 'modern' | 'roman' | 'numbered' | 'badge';
@@ -102,6 +103,7 @@ export const useSettingsStore = create<SettingsState>()(
         quote: true,
         search: true,
         bookmarks: true,
+        soundscapes: true,
       },
 
       // Actions
