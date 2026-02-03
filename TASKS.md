@@ -76,7 +76,7 @@ This document tracks the implementation progress of all features for the Hour On
 | 4.6 | Advanced To-Do Lists | ✅ | `TodoList.tsx`, `todosStore.ts`, `types/index.ts` | Due dates, priorities, tags, subtasks, search |
 | 4.7 | Autofocus Mode | ✅ | `AutofocusMode.tsx`, `autofocusStore.ts` | Sequential task focus with skip/complete/not-today actions |
 | 4.8 | Habit Tracker | ✅ | `HabitTracker.tsx`, `habitStore.ts` | Daily habits, streaks, week view, frequency options |
-| 4.9 | Metrics Dashboard | ⏳ | - | Productivity analytics |
+| 4.9 | Metrics Dashboard | ✅ | `MetricsDashboard.tsx`, `metricsService.ts` | Productivity score, weekly trends, aggregated stats |
 | 4.10 | Balance Mode | ✅ | `BalanceMode.tsx`, `balanceStore.ts` | Work-life balance with score, sessions, week chart, break reminders |
 
 ### Tab & Session Management
@@ -218,13 +218,19 @@ src/
 
 ## Next Up (Recommended Order)
 
-1. **4.9 Metrics Dashboard** - Productivity analytics
+All core productivity features are complete! Remaining options:
+
+1. **4.1 Vision Board** - Custom image uploads (requires storage)
+2. **4.2 Multiple Workspaces** - Context switching
+3. **5.4 Keyboard Shortcuts** - Quick actions
+4. **5.2 Performance Optimization** - Lazy loading, code splitting
 
 ---
 
 ## Notes
 
 - All free features are complete and functional
+- Core productivity tools complete: Focus Mode, Autofocus, Habits, Balance, Metrics
 - Pro features require backend infrastructure (Phase 3)
 - AI features (4.15, 4.16) require API key management
 - Integrations (4.17-4.20) require OAuth implementation
