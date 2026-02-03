@@ -1,6 +1,6 @@
 # Hour One - Feature Task Tracker
 
-> Last Updated: 2026-02-03
+> Last Updated: 2026-02-04
 
 ## Overview
 
@@ -124,7 +124,7 @@ This document tracks the implementation progress of all features for the Hour On
 | 5.1 | Onboarding Flow | ✅ | `ui/Onboarding.tsx`, `settingsStore.ts` | Welcome wizard with name/location setup |
 | 5.2 | Performance Optimization | ⏳ | - | Lazy loading, code splitting |
 | 5.3 | Error Handling | ⏳ | - | Graceful degradation |
-| 5.4 | Keyboard Shortcuts | ⏳ | - | Quick actions |
+| 5.4 | Keyboard Shortcuts | ✅ | `ui/KeyboardShortcuts.tsx`, `keyboardStore.ts` | Global shortcuts, help modal |
 | 5.5 | Widget Visibility Toggles | ✅ | `SettingsSidebar.tsx`, `settingsStore.ts` | Show/hide in settings |
 | 5.6 | Cross-Browser Support | ⏳ | - | Firefox, Edge |
 | 5.7 | Unit Tests | ⏳ | - | Component tests |
@@ -142,10 +142,10 @@ This document tracks the implementation progress of all features for the Hour On
 | Phase 2: Free Features | 11 | 11 | 0 | 0 |
 | Phase 3: Pro Infrastructure | 5 | 0 | 0 | 5 |
 | Phase 4: Pro Features | 21 | 7 | 0 | 14 |
-| Phase 5: Polish & Launch | 10 | 2 | 0 | 8 |
-| **Total** | **53** | **26** | **0** | **27** |
+| Phase 5: Polish & Launch | 10 | 3 | 0 | 7 |
+| **Total** | **53** | **27** | **0** | **26** |
 
-**Overall Progress: 49% Complete (26/53 features)**
+**Overall Progress: 51% Complete (27/53 features)**
 
 ---
 
@@ -175,6 +175,7 @@ src/
 │   │   └── Countdown.tsx ✅
 │   └── ui/
 │       ├── Dropdown.tsx ✅
+│       ├── KeyboardShortcuts.tsx ✅
 │       ├── Onboarding.tsx ✅
 │       ├── PopupPanel.tsx ✅
 │       ├── SettingsPanel.tsx ✅
@@ -195,6 +196,7 @@ src/
 │   ├── bookmarksStore.ts ✅
 │   ├── focusSessionStore.ts ✅
 │   ├── focusStore.ts ✅
+│   ├── keyboardStore.ts ✅
 │   ├── mantraStore.ts ✅
 │   ├── quickLinksStore.ts ✅
 │   ├── quoteStore.ts ✅

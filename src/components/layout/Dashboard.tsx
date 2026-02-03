@@ -18,8 +18,10 @@ import { CountdownButton, CountdownPanel, CountdownHeaderActions } from '@/compo
 import { HabitTrackerButton, HabitTrackerPanel, HabitTrackerHeaderActions } from '@/components/widgets/HabitTracker';
 import { FocusModeOverlay } from '@/components/widgets/FocusModeOverlay';
 import { AutofocusOverlay, AutofocusButton, useAutofocusKeyboard } from '@/components/widgets/AutofocusMode';
+import { useAutofocusStore } from '@/stores/autofocusStore';
 import { BalancePanel, BalanceButton, BalanceHeaderActions, BreakReminderNotification } from '@/components/widgets/BalanceMode';
 import { MetricsPanel, MetricsButton, MetricsHeaderActions } from '@/components/widgets/MetricsDashboard';
+import { useKeyboardShortcuts, KeyboardShortcutsHelp } from '@/components/ui/KeyboardShortcuts';
 import { SettingsSidebar } from '@/components/ui/SettingsSidebar';
 import { Onboarding } from '@/components/ui/Onboarding';
 import { IconButton } from '@/components/ui/IconButton';
@@ -44,6 +46,7 @@ export function Dashboard() {
   const { links } = useQuickLinksStore();
   const pinnedItems = usePinnedItems();
   const { centerWidgetOrder, swapCenterWidgets } = useLayoutStore();
+  const { startAutofocus } = useAutofocusStore();
 
   const [showTodos, setShowTodos] = useState(false);
   const [showLinks, setShowLinks] = useState(false);
@@ -63,6 +66,21 @@ export function Dashboard() {
 
   // Autofocus keyboard shortcuts
   useAutofocusKeyboard();
+
+  // Global keyboard shortcuts
+  useKeyboardShortcuts({
+    openSettings: () => window.dispatchEvent(new CustomEvent('openSettings', { detail: {} })),
+    toggleTodos: () => setShowTodos((v) => !v),
+    toggleLinks: () => setShowLinks((v) => !v),
+    toggleHabits: () => setShowHabits((v) => !v),
+    toggleBalance: () => setShowBalance((v) => !v),
+    toggleMetrics: () => setShowMetrics((v) => !v),
+    toggleWorldClocks: () => setShowWorldClocks((v) => !v),
+    toggleCountdowns: () => setShowCountdowns((v) => !v),
+    startFocusMode: () => enterFocusMode(focus),
+    startAutofocus: () => startAutofocus(),
+    newTask: () => setShowTodos(true), // Open todo list to add new task
+  });
 
   // Determine if we should show the toggle (both focus and search are enabled)
   const showToggle = widgets.focus && widgets.search;
@@ -95,6 +113,9 @@ export function Dashboard() {
 
       {/* Onboarding Flow - shown only for first-time users */}
       <Onboarding />
+
+      {/* Keyboard Shortcuts Help Modal */}
+      <KeyboardShortcutsHelp />
 
       {/* Main Content - hidden during focus mode */}
       <main

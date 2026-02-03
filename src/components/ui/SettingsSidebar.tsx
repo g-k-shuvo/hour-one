@@ -9,6 +9,7 @@ import { useCountdownStore } from '@/stores/countdownStore';
 import { useHabitStore, calculateStreak } from '@/stores/habitStore';
 import { useBalanceStore, formatDuration, getScoreLabel } from '@/stores/balanceStore';
 import { useLayoutStore, type CenterWidgetId } from '@/stores/layoutStore';
+import { useKeyboardStore, formatShortcut, DEFAULT_SHORTCUTS } from '@/stores/keyboardStore';
 import { getMantraById, getAllMantras } from '@/services/mantrasService';
 import { getProductivityScore, getTaskMetrics, getFocusMetrics, getHabitMetrics } from '@/services/metricsService';
 import { Toggle } from './Toggle';
@@ -44,7 +45,8 @@ type SettingsSection =
   | 'countdowns'
   | 'habits'
   | 'balance'
-  | 'metrics';
+  | 'metrics'
+  | 'keyboard';
 
 interface NavItemProps {
   label: string;
@@ -139,6 +141,12 @@ export function SettingsSidebar() {
     centerWidgetOrder,
     resetLayout,
   } = useLayoutStore();
+
+  const {
+    enabled: keyboardEnabled,
+    setEnabled: setKeyboardEnabled,
+    toggleHelp: toggleKeyboardHelp,
+  } = useKeyboardStore();
 
   // Listen for openSettings event from other components
   useEffect(() => {
@@ -1003,6 +1011,96 @@ export function SettingsSidebar() {
           </div>
         );
 
+      case 'keyboard':
+        const shortcuts = DEFAULT_SHORTCUTS;
+        const categories = {
+          navigation: shortcuts.filter(s => s.category === 'navigation'),
+          panels: shortcuts.filter(s => s.category === 'panels'),
+          actions: shortcuts.filter(s => s.category === 'actions'),
+          focus: shortcuts.filter(s => s.category === 'focus'),
+        };
+        return (
+          <div>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Keyboard Shortcuts</h3>
+            <p className="text-sm text-theme-secondary mb-6">Quick actions with your keyboard</p>
+
+            <div className="divide-y divide-white/10">
+              <Toggle
+                enabled={keyboardEnabled}
+                onChange={() => setKeyboardEnabled(!keyboardEnabled)}
+                title="Enable Shortcuts"
+                description="Toggle all keyboard shortcuts"
+              />
+            </div>
+
+            <div className="mt-6">
+              <button
+                onClick={toggleKeyboardHelp}
+                className="w-full py-2 bg-theme-secondary text-theme-primary text-sm font-medium rounded-lg hover:bg-theme-tertiary transition-colors"
+              >
+                View All Shortcuts (Ctrl + /)
+              </button>
+            </div>
+
+            {/* Quick reference */}
+            <div className="mt-6">
+              <h4 className="text-xs font-semibold text-theme-muted uppercase tracking-wider mb-3">
+                Quick Reference
+              </h4>
+
+              <div className="space-y-4">
+                {/* Navigation */}
+                <div>
+                  <p className="text-xs text-theme-muted mb-2">Navigation</p>
+                  <div className="space-y-1">
+                    {categories.navigation.map(s => (
+                      <div key={s.id} className="flex items-center justify-between py-1">
+                        <span className="text-sm text-theme-secondary">{s.description}</span>
+                        <kbd className="px-1.5 py-0.5 bg-theme-secondary rounded text-xs font-mono text-theme-muted">
+                          {formatShortcut(s)}
+                        </kbd>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Panels */}
+                <div>
+                  <p className="text-xs text-theme-muted mb-2">Panels</p>
+                  <div className="space-y-1">
+                    {categories.panels.slice(0, 4).map(s => (
+                      <div key={s.id} className="flex items-center justify-between py-1">
+                        <span className="text-sm text-theme-secondary">{s.description}</span>
+                        <kbd className="px-1.5 py-0.5 bg-theme-secondary rounded text-xs font-mono text-theme-muted">
+                          {formatShortcut(s)}
+                        </kbd>
+                      </div>
+                    ))}
+                    {categories.panels.length > 4 && (
+                      <p className="text-xs text-theme-muted">+{categories.panels.length - 4} more...</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div>
+                  <p className="text-xs text-theme-muted mb-2">Actions</p>
+                  <div className="space-y-1">
+                    {categories.actions.slice(0, 3).map(s => (
+                      <div key={s.id} className="flex items-center justify-between py-1">
+                        <span className="text-sm text-theme-secondary">{s.description}</span>
+                        <kbd className="px-1.5 py-0.5 bg-theme-secondary rounded text-xs font-mono text-theme-muted">
+                          {formatShortcut(s)}
+                        </kbd>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -1121,6 +1219,11 @@ export function SettingsSidebar() {
                       label="Metrics"
                       active={activeSection === 'metrics'}
                       onClick={() => setActiveSection('metrics')}
+                    />
+                    <NavItem
+                      label="Keyboard"
+                      active={activeSection === 'keyboard'}
+                      onClick={() => setActiveSection('keyboard')}
                     />
                   </nav>
 
