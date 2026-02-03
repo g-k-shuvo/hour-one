@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckSquare, ExternalLink, MapPin, Search, Target, SlidersHorizontal, Play, Settings, Layers, Globe, Timer } from 'lucide-react';
+import { CheckSquare, ExternalLink, MapPin, Search, Target, SlidersHorizontal, Play, Settings, Layers, Globe, Timer, Flame } from 'lucide-react';
 import { Clock } from '@/components/widgets/Clock';
 import { Greeting } from '@/components/widgets/Greeting';
 import { Focus } from '@/components/widgets/Focus';
@@ -15,6 +15,7 @@ import { SoundscapesDropdown } from '@/components/widgets/Soundscapes';
 import { TabStashPanel, TabStashHeaderActions } from '@/components/widgets/TabStash';
 import { WorldClocksButton, WorldClocksPanel, WorldClocksHeaderActions } from '@/components/widgets/WorldClocks';
 import { CountdownButton, CountdownPanel, CountdownHeaderActions } from '@/components/widgets/Countdown';
+import { HabitTrackerButton, HabitTrackerPanel, HabitTrackerHeaderActions } from '@/components/widgets/HabitTracker';
 import { FocusModeOverlay } from '@/components/widgets/FocusModeOverlay';
 import { SettingsSidebar } from '@/components/ui/SettingsSidebar';
 import { Onboarding } from '@/components/ui/Onboarding';
@@ -43,6 +44,7 @@ export function Dashboard() {
   const [showTabStash, setShowTabStash] = useState(false);
   const [showWorldClocks, setShowWorldClocks] = useState(false);
   const [showCountdowns, setShowCountdowns] = useState(false);
+  const [showHabits, setShowHabits] = useState(false);
   const [centerMode, setCenterMode] = useState<CenterMode>('focus');
   const [showModeToggle, setShowModeToggle] = useState(false);
 
@@ -139,6 +141,13 @@ export function Dashboard() {
                 label="Countdowns"
               />
             )}
+            {widgets.habits && (
+              <IconButton
+                icon={Flame}
+                onClick={() => setShowHabits(!showHabits)}
+                label="Habits"
+              />
+            )}
             <IconButton
               icon={Play}
               onClick={() => enterFocusMode(focus)}
@@ -151,8 +160,9 @@ export function Dashboard() {
             />
           </div>
 
-          {/* Top Right - Countdowns, World Clocks, Soundscapes and Weather */}
+          {/* Top Right - Habits, Countdowns, World Clocks, Soundscapes and Weather */}
           <div className="flex items-center gap-3">
+            {widgets.habits && <HabitTrackerButton />}
             {widgets.countdowns && <CountdownButton />}
             {widgets.worldClocks && <WorldClocksButton />}
             {widgets.soundscapes && <SoundscapesDropdown />}
@@ -372,6 +382,18 @@ export function Dashboard() {
           headerActions={<CountdownHeaderActions onClose={() => setShowCountdowns(false)} />}
         >
           <CountdownPanel />
+        </PopupPanel>
+
+        {/* Habits Popup */}
+        <PopupPanel
+          isOpen={showHabits && widgets.habits}
+          onClose={() => setShowHabits(false)}
+          position="top-left"
+          title="Habits"
+          maxWidth="max-w-sm"
+          headerActions={<HabitTrackerHeaderActions onClose={() => setShowHabits(false)} />}
+        >
+          <HabitTrackerPanel />
         </PopupPanel>
       </main>
 

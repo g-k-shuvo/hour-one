@@ -6,6 +6,7 @@ import { useSoundscapeStore, SOUNDSCAPES } from '@/stores/soundscapeStore';
 import { useTabStashStore } from '@/stores/tabStashStore';
 import { useWorldClocksStore } from '@/stores/worldClocksStore';
 import { useCountdownStore } from '@/stores/countdownStore';
+import { useHabitStore, calculateStreak } from '@/stores/habitStore';
 import { getMantraById, getAllMantras } from '@/services/mantrasService';
 import { Toggle } from './Toggle';
 import { IconButton } from './IconButton';
@@ -36,7 +37,8 @@ type SettingsSection =
   | 'soundscapes'
   | 'tabstash'
   | 'worldclocks'
-  | 'countdowns';
+  | 'countdowns'
+  | 'habits';
 
 interface NavItemProps {
   label: string;
@@ -116,6 +118,10 @@ export function SettingsSidebar() {
   const {
     timers: countdownTimers,
   } = useCountdownStore();
+
+  const {
+    habits,
+  } = useHabitStore();
 
   // Listen for openSettings event from other components
   useEffect(() => {
@@ -741,6 +747,67 @@ export function SettingsSidebar() {
           </div>
         );
 
+      case 'habits':
+        const activeHabits = habits.filter(h => !h.archived);
+        return (
+          <div>
+            <h3 className="text-lg font-semibold text-theme-primary mb-1">Habits</h3>
+            <p className="text-sm text-theme-secondary mb-6">Track daily habits and build streaks</p>
+
+            <div className="divide-y divide-white/10">
+              <Toggle
+                enabled={widgets.habits}
+                onChange={() => toggleWidget('habits')}
+                title="Show Habits"
+                description="Display habit tracker on dashboard"
+              />
+            </div>
+
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-sm font-medium text-theme-primary">
+                  Active Habits
+                </label>
+                <span className="text-xs text-theme-muted">
+                  {activeHabits.length} habit{activeHabits.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+
+              {activeHabits.length === 0 ? (
+                <p className="text-sm text-theme-muted">
+                  No habits yet. Click the flame icon on your dashboard to create one.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {activeHabits.map((habit) => {
+                    const streak = calculateStreak(habit);
+                    return (
+                      <div
+                        key={habit.id}
+                        className="flex items-center justify-between p-2 bg-theme-secondary rounded-lg"
+                        style={{ borderLeft: `3px solid ${habit.color}` }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{habit.icon}</span>
+                          <div>
+                            <p className="text-sm text-theme-primary">{habit.name}</p>
+                            <p className="text-xs text-theme-muted capitalize">{habit.frequency}</p>
+                          </div>
+                        </div>
+                        {streak > 0 && (
+                          <span className="text-xs text-orange-400 font-medium">
+                            🔥 {streak}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -839,6 +906,11 @@ export function SettingsSidebar() {
                       label="Countdowns"
                       active={activeSection === 'countdowns'}
                       onClick={() => setActiveSection('countdowns')}
+                    />
+                    <NavItem
+                      label="Habits"
+                      active={activeSection === 'habits'}
+                      onClick={() => setActiveSection('habits')}
                     />
                   </nav>
 

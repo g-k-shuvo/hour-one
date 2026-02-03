@@ -16,6 +16,7 @@ interface WidgetVisibility {
   tabStash: boolean;
   worldClocks: boolean;
   countdowns: boolean;
+  habits: boolean;
 }
 
 export type AnalogClockVariant = 'classic' | 'minimal' | 'modern' | 'roman' | 'numbered' | 'badge';
@@ -110,6 +111,7 @@ export const useSettingsStore = create<SettingsState>()(
         tabStash: true,
         worldClocks: true,
         countdowns: true,
+        habits: true,
       },
 
       // Actions
