@@ -14,7 +14,11 @@
       "Bash(npx tsc:*)",
       "Bash(git push)",
       "Bash(dir:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(git pull:*)"
     ]
   }
 }
