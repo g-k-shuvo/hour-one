@@ -97,16 +97,6 @@ export function DraggableWidget({
   );
 }
 
-// Context for managing drag state across widgets
-interface DragContextValue {
-  isDragging: boolean;
-  dragIndex: number | null;
-  dragOverIndex: number | null;
-  handleDragStart: (index: number) => void;
-  handleDragOver: (index: number) => void;
-  handleDragEnd: () => void;
-}
-
 export function useDragReorder(onReorder: (fromIndex: number, toIndex: number) => void) {
   const [dragState, setDragState] = useState<{
     isDragging: boolean;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Volume2, VolumeX, Play, Pause, Music, ChevronDown } from 'lucide-react';
 import { useSoundscapeStore, SOUNDSCAPES, getSoundscapeById, type Soundscape } from '@/stores/soundscapeStore';
 import { useClickOutside } from '@/hooks/useClickOutside';
@@ -28,7 +28,6 @@ export function SoundscapesPanel({ compact = false }: SoundscapesPanelProps) {
     setVolume,
     setCurrentSoundscape,
     play,
-    pause,
     toggle,
   } = useSoundscapeStore();
 

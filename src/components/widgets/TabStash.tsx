@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
+import { useState, useEffect } from 'react';
 import {
   Layers,
   Save,
@@ -15,8 +14,6 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useTabStashStore, type TabSession } from '@/stores/tabStashStore';
-import { useClickOutside } from '@/hooks/useClickOutside';
-import { PopupPanel } from '@/components/ui/PopupPanel';
 
 // Format relative time
 function formatRelativeTime(timestamp: number): string {
@@ -376,7 +373,7 @@ export function TabStashButton({ onClick }: { onClick: () => void }) {
 }
 
 // Header actions for the popup panel
-export function TabStashHeaderActions({ onClose }: { onClose: () => void }) {
+export function TabStashHeaderActions({ onClose: _onClose }: { onClose: () => void }) {
   const { saveCurrentTabs, hasPermission, isLoading } = useTabStashStore();
 
   if (!hasPermission) return null;

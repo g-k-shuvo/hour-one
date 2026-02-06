@@ -8,7 +8,6 @@ import {
   Moon,
   Search,
   Settings,
-  GripVertical,
 } from 'lucide-react';
 import {
   useWorldClocksStore,
@@ -248,7 +247,7 @@ export function WorldClocksButton() {
   const { clocks } = useWorldClocksStore();
   const { timeFormat } = useSettingsStore();
   const [showPopup, setShowPopup] = useState(false);
-  const [time, setTime] = useState(new Date());
+  const [_time, setTime] = useState(new Date()); // Used to trigger re-renders
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
 

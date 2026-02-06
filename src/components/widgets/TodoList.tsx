@@ -19,14 +19,13 @@ import {
   Tag,
   ChevronDown,
   ChevronRight,
-  AlertCircle,
   type LucideIcon,
 } from 'lucide-react';
 import { useTodosStore } from '@/stores/todosStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import { SYSTEM_FOLDER_IDS } from '@/types';
-import type { Task, TaskFolder, TaskPriority, Subtask } from '@/types';
+import type { Task, TaskFolder, TaskPriority } from '@/types';
 
 // Map folder icon names to Lucide components
 const FOLDER_ICONS: Record<string, LucideIcon> = {
@@ -471,7 +470,7 @@ function TaskItem({
   const [showTagMenu, setShowTagMenu] = useState(false);
   const [showSubtasks, setShowSubtasks] = useState(false);
   const [newSubtaskText, setNewSubtaskText] = useState('');
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [_showDatePicker, setShowDatePicker] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const [submenuPosition, setSubmenuPosition] = useState({ top: 0, left: 0, openLeft: false });
   const menuButtonRef = useRef<HTMLButtonElement>(null);

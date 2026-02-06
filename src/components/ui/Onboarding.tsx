@@ -9,7 +9,7 @@ const STEPS: OnboardingStep[] = ['welcome', 'name', 'location', 'complete'];
 
 export function Onboarding() {
   const { onboardingComplete, userName, setUserName, completeOnboarding } = useSettingsStore();
-  const { fetchWeather } = useWeatherStore();
+  const { loadWeather } = useWeatherStore();
 
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('welcome');
   const [nameInput, setNameInput] = useState(userName);
@@ -40,7 +40,7 @@ export function Onboarding() {
   const handleRequestLocation = async () => {
     setIsRequestingLocation(true);
     try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+      await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: false,
           timeout: 10000,
@@ -48,7 +48,7 @@ export function Onboarding() {
       });
 
       // Fetch weather with the location
-      await fetchWeather(position.coords.latitude, position.coords.longitude);
+      await loadWeather();
       setLocationGranted(true);
 
       // Auto-advance after a brief delay

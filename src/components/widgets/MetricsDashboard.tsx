@@ -1,8 +1,6 @@
 import { useState, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import {
   BarChart3,
-  X,
   TrendingUp,
   TrendingDown,
   Minus,
@@ -22,11 +20,6 @@ import {
   getBalanceMetrics,
   getProductivityScore,
   getWeeklyTrends,
-  type TaskMetrics,
-  type FocusMetrics,
-  type HabitMetrics,
-  type BalanceMetrics,
-  type ProductivityScore,
   type WeeklyTrend,
 } from '@/services/metricsService';
 import { formatDuration } from '@/stores/balanceStore';
@@ -124,29 +117,6 @@ function StatCard({
         <span className="text-xl font-bold text-white">{value}</span>
         {subValue && <span className="text-xs text-white/40">{subValue}</span>}
       </div>
-    </div>
-  );
-}
-
-// Mini Bar Chart
-function MiniBarChart({ data, maxValue }: { data: { label: string; value: number; color?: string }[]; maxValue?: number }) {
-  const max = maxValue || Math.max(...data.map(d => d.value), 1);
-
-  return (
-    <div className="flex items-end gap-1 h-16">
-      {data.map((item, i) => (
-        <div key={i} className="flex-1 flex flex-col items-center gap-1">
-          <div
-            className="w-full rounded-t transition-all"
-            style={{
-              height: `${(item.value / max) * 100}%`,
-              minHeight: item.value > 0 ? 4 : 0,
-              backgroundColor: item.color || 'var(--accent)',
-            }}
-          />
-          <span className="text-[10px] text-white/40">{item.label}</span>
-        </div>
-      ))}
     </div>
   );
 }
@@ -436,7 +406,7 @@ export function MetricsButton() {
 }
 
 // Header Actions
-export function MetricsHeaderActions({ onClose }: { onClose: () => void }) {
+export function MetricsHeaderActions({ onClose: _onClose }: { onClose: () => void }) {
   return (
     <div className="flex items-center gap-1">
       {/* Could add refresh button or date range selector here */}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Settings, X, User, HelpCircle, Info, Heart, Eye, Sun, Moon, Monitor, Check } from 'lucide-react';
-import { useSettingsStore, ACCENT_COLORS, type ThemeMode, type AccentColor } from '@/stores/settingsStore';
+import { X, User, Heart, Eye, Sun, Moon, Monitor, Check } from 'lucide-react';
+import { useSettingsStore, ACCENT_COLORS, type AccentColor } from '@/stores/settingsStore';
 import { useMantraStore } from '@/stores/mantraStore';
 import { useSoundscapeStore, SOUNDSCAPES } from '@/stores/soundscapeStore';
 import { useTabStashStore } from '@/stores/tabStashStore';
@@ -10,10 +10,9 @@ import { useHabitStore, calculateStreak } from '@/stores/habitStore';
 import { useBalanceStore, formatDuration, getScoreLabel } from '@/stores/balanceStore';
 import { useLayoutStore, type CenterWidgetId } from '@/stores/layoutStore';
 import { useKeyboardStore, formatShortcut, DEFAULT_SHORTCUTS } from '@/stores/keyboardStore';
-import { getMantraById, getAllMantras } from '@/services/mantrasService';
+import { getMantraById } from '@/services/mantrasService';
 import { getProductivityScore, getTaskMetrics, getFocusMetrics, getHabitMetrics } from '@/services/metricsService';
 import { Toggle } from './Toggle';
-import { IconButton } from './IconButton';
 
 // Task integrations (non-functional placeholders)
 const TASK_INTEGRATIONS = [
@@ -295,8 +294,8 @@ export function SettingsSidebar() {
                         accentColor === key ? 'ring-2 ring-offset-2' : ''
                       }`}
                       style={{
-                        ringColor: accentColor === key ? value : undefined,
-                      }}
+                        '--tw-ring-color': accentColor === key ? value : undefined,
+                      } as React.CSSProperties}
                       title={name}
                     >
                       <div
@@ -1322,7 +1321,6 @@ function MantraSettings({
   toggleFavorite,
   unhideMantra,
 }: MantraSettingsProps) {
-  const allMantras = getAllMantras();
   const favoriteMantras = favoriteIds
     .map(id => getMantraById(id))
     .filter((m): m is NonNullable<typeof m> => m !== undefined);

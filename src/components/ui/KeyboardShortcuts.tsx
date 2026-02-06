@@ -8,7 +8,6 @@ import {
   type KeyboardShortcut,
 } from '@/stores/keyboardStore';
 import { useFocusSessionStore } from '@/stores/focusSessionStore';
-import { useFocusStore } from '@/stores/focusStore';
 import { useBalanceStore } from '@/stores/balanceStore';
 
 // Shortcut handlers type
@@ -29,8 +28,7 @@ export interface ShortcutHandlers {
 // Hook to handle keyboard shortcuts
 export function useKeyboardShortcuts(handlers: Partial<ShortcutHandlers>) {
   const { enabled, getAllShortcuts, toggleHelp } = useKeyboardStore();
-  const { phase: focusPhase, togglePause, skipBreak, exitFocusMode } = useFocusSessionStore();
-  const { focus } = useFocusStore();
+  const { phase: focusPhase, pauseTimer, startTimer, isTimerRunning, pomodoroPhase, setPomodoroPhase, exitFocusMode } = useFocusSessionStore();
   const { activeSession, startWork, stopWork } = useBalanceStore();
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -60,10 +58,16 @@ export function useKeyboardShortcuts(handlers: Partial<ShortcutHandlers>) {
         event.preventDefault();
         switch (shortcut.id) {
           case 'pauseResume':
-            togglePause();
+            if (isTimerRunning) {
+              pauseTimer();
+            } else {
+              startTimer();
+            }
             break;
           case 'skipBreak':
-            if (focusPhase === 'break') skipBreak();
+            if (pomodoroPhase === 'break') {
+              setPomodoroPhase('focus');
+            }
             break;
           case 'exitFocus':
             exitFocusMode();
@@ -73,7 +77,8 @@ export function useKeyboardShortcuts(handlers: Partial<ShortcutHandlers>) {
       }
 
       // Don't trigger regular shortcuts during focus mode
-      if (isInFocusMode && shortcut.category !== 'focus') continue;
+      // (focus category shortcuts are already handled above and returned)
+      if (isInFocusMode) continue;
 
       event.preventDefault();
 
@@ -124,7 +129,7 @@ export function useKeyboardShortcuts(handlers: Partial<ShortcutHandlers>) {
       }
       return;
     }
-  }, [enabled, getAllShortcuts, focusPhase, togglePause, skipBreak, exitFocusMode, toggleHelp, handlers, activeSession, startWork, stopWork]);
+  }, [enabled, getAllShortcuts, focusPhase, isTimerRunning, pauseTimer, startTimer, pomodoroPhase, setPomodoroPhase, exitFocusMode, toggleHelp, handlers, activeSession, startWork, stopWork]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);

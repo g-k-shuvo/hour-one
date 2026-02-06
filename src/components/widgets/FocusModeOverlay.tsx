@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { X, Play, Pause, RotateCcw, MoreHorizontal, Check, Plus, Clock, Bell, Eye, Volume2, Timer, ArrowUpDown, Edit3, ExternalLink, CheckSquare, Settings } from 'lucide-react';
+import { X, Play, Pause, RotateCcw, MoreHorizontal, Check, Plus, Clock, Timer, ArrowUpDown, Edit3, ExternalLink, CheckSquare, Settings } from 'lucide-react';
 import {
   useFocusSessionStore,
   getRandomFocusQuote,
@@ -15,24 +15,6 @@ import { QuickLinks, QuickLinksHeaderActions } from '@/components/widgets/QuickL
 import { useTodosStore } from '@/stores/todosStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 
-// Format seconds to MM:SS or HH:MM:SS
-function formatTime(seconds: number, hideSeconds: boolean = false): string {
-  const hrs = Math.floor(seconds / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-
-  if (hideSeconds) {
-    if (hrs > 0) {
-      return `${hrs}:${mins.toString().padStart(2, '0')}`;
-    }
-    return `${mins}`;
-  }
-
-  if (hrs > 0) {
-    return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
 
 // Format session duration for display
 function formatDuration(seconds: number): string {

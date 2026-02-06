@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Task, TaskFolder, TaskTag, TaskPriority, Subtask } from '@/types';
+import type { Task, TaskFolder, TaskTag, TaskPriority } from '@/types';
 import { SYSTEM_FOLDER_IDS } from '@/types';
 import { chromeStorage } from '@/lib/chromeStorage';
 
@@ -452,7 +452,7 @@ export const useTodosStore = create<TodosState>()(
 
         if (version < 2) {
           // Migration from v1 to v2: add folders and folderId to tasks
-          const rawTasks = (state.tasks || []) as Array<Record<string, unknown>>;
+          const rawTasks = (state.tasks || []) as unknown as Array<Record<string, unknown>>;
           const tasks = rawTasks.map(t => {
             const sanitized = sanitizeTask(t);
             // Set folder based on completion status if not already set

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MapPin, RefreshCw, CloudOff, X } from 'lucide-react';
+import { MapPin, RefreshCw, CloudOff } from 'lucide-react';
 import { useWeatherStore } from '@/stores/weatherStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { celsiusToFahrenheit, getWindDirectionArrow } from '@/services/weatherService';

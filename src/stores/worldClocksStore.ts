@@ -56,7 +56,9 @@ export function getAllTimezones(): string[] {
   // Use Intl.supportedValuesOf if available (modern browsers)
   if (typeof Intl !== 'undefined' && 'supportedValuesOf' in Intl) {
     try {
-      return (Intl as { supportedValuesOf: (key: string) => string[] }).supportedValuesOf('timeZone');
+      // Cast to unknown first to avoid TypeScript error with older lib definitions
+      const intl = Intl as unknown as { supportedValuesOf: (key: string) => string[] };
+      return intl.supportedValuesOf('timeZone');
     } catch {
       // Fallback to our list
     }
@@ -99,7 +101,6 @@ export function getTimezoneOffset(timezone: string): string {
 export function getRelativeOffset(timezone: string): string {
   try {
     const now = new Date();
-    const localOffset = now.getTimezoneOffset();
 
     // Get the offset for the target timezone
     const targetFormatter = new Intl.DateTimeFormat('en-US', {

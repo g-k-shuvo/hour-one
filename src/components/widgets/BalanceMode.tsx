@@ -6,14 +6,10 @@ import {
   Pause,
   Coffee,
   Clock,
-  TrendingUp,
-  TrendingDown,
-  Minus,
   X,
   Settings,
   Bell,
   BellOff,
-  ChevronRight,
 } from 'lucide-react';
 import {
   useBalanceStore,
@@ -544,7 +540,6 @@ export function BalanceButton() {
   }, [activeSession]);
 
   const isWorking = activeSession?.type === 'work';
-  const isOnBreak = activeSession?.type === 'break';
 
   return (
     <div className="flex items-center gap-2">
@@ -580,7 +575,7 @@ export function BalanceButton() {
 }
 
 // Header Actions for PopupPanel
-export function BalanceHeaderActions({ onClose }: { onClose: () => void }) {
+export function BalanceHeaderActions({ onClose: _onClose }: { onClose: () => void }) {
   const { breakRemindersEnabled, setBreakReminders } = useBalanceStore();
 
   return (

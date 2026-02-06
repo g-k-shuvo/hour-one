@@ -28,7 +28,6 @@ export function Background() {
 
   // Determine zoom and overlay state based on focus mode phase
   const isZooming = phase === 'entering' || phase === 'transition' || phase === 'active' || phase === 'exiting' || phase === 'celebration';
-  const isZoomingOut = phase === 'leaving';
   const showDarkOverlay = phase !== 'idle' && phase !== 'leaving';
   // Never hide background - always show it
 

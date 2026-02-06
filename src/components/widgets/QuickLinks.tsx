@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import { useQuickLinksStore } from '@/stores/quickLinksStore';
 import {
-  Dropdown,
   DropdownItem,
   DropdownDivider,
   DropdownContainer,

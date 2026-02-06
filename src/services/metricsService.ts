@@ -1,9 +1,8 @@
 import { useTodosStore } from '@/stores/todosStore';
 import { useFocusSessionStore } from '@/stores/focusSessionStore';
 import { useHabitStore, calculateStreak, getCompletionRate, isCompletedToday } from '@/stores/habitStore';
-import { useBalanceStore, formatDuration } from '@/stores/balanceStore';
+import { useBalanceStore } from '@/stores/balanceStore';
 import { getTodayDate } from '@/lib/dateUtils';
-import { SYSTEM_FOLDER_IDS } from '@/types';
 
 // Task Metrics
 export interface TaskMetrics {
@@ -78,24 +77,42 @@ export interface FocusMetrics {
   longestSession: number;
 }
 
+interface FocusSession {
+  date: string;
+  focusMinutes: number;
+  breakMinutes: number;
+}
+
 export function getFocusMetrics(): FocusMetrics {
-  const { sessions } = useFocusSessionStore.getState();
+  // Note: FocusSessionStore doesn't persist session history yet
+  // This returns current session data only. Full history tracking is a future feature.
+  const state = useFocusSessionStore.getState();
+  const sessions: FocusSession[] = []; // Placeholder for future session history
   const today = getTodayDate();
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
   const weekAgoStr = weekAgo.toISOString().split('T')[0];
 
-  const todaySessions = sessions.filter(s => s.date === today);
-  const weekSessions = sessions.filter(s => s.date >= weekAgoStr);
+  // Include current session if active
+  if (state.totalSessionSeconds > 0) {
+    sessions.push({
+      date: today,
+      focusMinutes: Math.floor(state.totalSessionSeconds / 60),
+      breakMinutes: 0,
+    });
+  }
 
-  const totalFocusMinutes = sessions.reduce((sum, s) => sum + (s.focusMinutes || 0), 0);
-  const totalBreakMinutes = sessions.reduce((sum, s) => sum + (s.breakMinutes || 0), 0);
-  const focusMinutesToday = todaySessions.reduce((sum, s) => sum + (s.focusMinutes || 0), 0);
-  const focusMinutesThisWeek = weekSessions.reduce((sum, s) => sum + (s.focusMinutes || 0), 0);
+  const todaySessions = sessions.filter((s: FocusSession) => s.date === today);
+  const weekSessions = sessions.filter((s: FocusSession) => s.date >= weekAgoStr);
 
-  const sessionLengths = sessions.map(s => s.focusMinutes || 0).filter(m => m > 0);
+  const totalFocusMinutes = sessions.reduce((sum: number, s: FocusSession) => sum + (s.focusMinutes || 0), 0);
+  const totalBreakMinutes = sessions.reduce((sum: number, s: FocusSession) => sum + (s.breakMinutes || 0), 0);
+  const focusMinutesToday = todaySessions.reduce((sum: number, s: FocusSession) => sum + (s.focusMinutes || 0), 0);
+  const focusMinutesThisWeek = weekSessions.reduce((sum: number, s: FocusSession) => sum + (s.focusMinutes || 0), 0);
+
+  const sessionLengths = sessions.map((s: FocusSession) => s.focusMinutes || 0).filter((m: number) => m > 0);
   const avgSessionLength = sessionLengths.length > 0
-    ? Math.round(sessionLengths.reduce((a, b) => a + b, 0) / sessionLengths.length)
+    ? Math.round(sessionLengths.reduce((a: number, b: number) => a + b, 0) / sessionLengths.length)
     : 0;
   const longestSession = sessionLengths.length > 0 ? Math.max(...sessionLengths) : 0;
 
@@ -170,7 +187,7 @@ export interface BalanceMetrics {
 }
 
 export function getBalanceMetrics(): BalanceMetrics {
-  const { logs, goals, getWorkLifeScore, getTodayLog, getWeekLogs } = useBalanceStore.getState();
+  const { goals, getWorkLifeScore, getTodayLog, getWeekLogs } = useBalanceStore.getState();
 
   const todayLog = getTodayLog();
   const weekLogs = getWeekLogs();
@@ -281,9 +298,20 @@ export interface WeeklyTrend {
 
 export function getWeeklyTrends(): WeeklyTrend[] {
   const { tasks } = useTodosStore.getState();
-  const { sessions } = useFocusSessionStore.getState();
   const { habits } = useHabitStore.getState();
   const { getWeekLogs } = useBalanceStore.getState();
+  const focusState = useFocusSessionStore.getState();
+
+  // Note: Session history not yet implemented in focusSessionStore
+  const sessions: FocusSession[] = [];
+  const today = getTodayDate();
+  if (focusState.totalSessionSeconds > 0) {
+    sessions.push({
+      date: today,
+      focusMinutes: Math.floor(focusState.totalSessionSeconds / 60),
+      breakMinutes: 0,
+    });
+  }
 
   const weekLogs = getWeekLogs();
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -300,8 +328,8 @@ export function getWeeklyTrends(): WeeklyTrend[] {
 
     // Focus minutes on this day
     const focusMinutes = sessions
-      .filter(s => s.date === log.date)
-      .reduce((sum, s) => sum + (s.focusMinutes || 0), 0);
+      .filter((s: FocusSession) => s.date === log.date)
+      .reduce((sum: number, s: FocusSession) => sum + (s.focusMinutes || 0), 0);
 
     // Habits completed on this day
     const habitsCompleted = activeHabits.filter(h =>
