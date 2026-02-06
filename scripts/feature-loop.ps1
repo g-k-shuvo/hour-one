@@ -41,7 +41,8 @@ function Test-FeatureExists($Slug) {
 
 function Get-PendingFeatures {
     $readme = Get-Content "$FeaturesDir/README.md" -Raw
-    $matches = [regex]::Matches($readme, '\|\s*\[([^\]]+)\].*\|\s*Pending\s*\|')
+    # Match: | [slug](./slug.md) | Title | PENDING | Phase |
+    $matches = [regex]::Matches($readme, '\|\s*\[([^\]]+)\][^\|]*\|[^\|]*\|\s*PENDING\s*\|', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
     return $matches | ForEach-Object { $_.Groups[1].Value }
 }
 
