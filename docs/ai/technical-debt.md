@@ -23,14 +23,6 @@
 - **Solution**: Add error boundaries around widgets
 - **Effort**: Low
 
-### 4. TypeScript Errors (84 errors)
-- **Location**: Throughout codebase
-- **Issue**: 84 TypeScript errors (mostly unused imports/variables, some type mismatches)
-- **Impact**: Type safety compromised, CI would fail with strict checks
-- **Affected Files**: KeyboardShortcuts, SettingsSidebar, MetricsDashboard, various widgets and stores
-- **Solution**: Fix unused imports, correct type mismatches
-- **Effort**: Medium
-
 ## Priority: Medium
 
 ### 5. No API Error Handling UI
@@ -65,7 +57,10 @@
 
 ## Recently Resolved
 
-*None yet*
+### TypeScript Errors (84 errors) - RESOLVED 2026-02-06
+- **PR**: #1 - fix: resolve all 84 TypeScript errors
+- **Solution Applied**: Removed unused imports, fixed type mismatches, added proper interfaces
+- **Files Fixed**: 23 files across components, services, and stores
 
 ---
 
