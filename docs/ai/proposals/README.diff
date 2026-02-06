@@ -1,0 +1,65 @@
+# README.md Improvement Proposal
+
+## Date: 2026-02-06
+
+## Summary
+Updates to align README.md with actual project structure and commands.
+
+## Proposed Changes
+
+### 1. Add Missing Commands
+Add `npm run preview` and `npm run setup` to the commands section:
+
+```diff
+ ### Installation
+
+ ```bash
+ # Install dependencies
+ npm install
+
+ # Start development server
+ npm run dev
++
++# Preview production build
++npm run preview
++
++# Generate extension icons
++npm run setup
+ ```
+```
+
+### 2. Fix Project Structure
+Change `utils/` to `lib/` to match actual directory:
+
+```diff
+ ├── src/
+ │   ├── components/
+ │   │   ├── layout/      # Dashboard layout components
+ │   │   ├── widgets/     # Individual widget components
+ │   │   └── ui/          # Reusable UI components
+ │   ├── hooks/           # Custom React hooks
+ │   ├── stores/          # Zustand state stores
+ │   ├── services/        # API integrations
+ │   ├── types/           # TypeScript type definitions
+-│   ├── utils/           # Utility functions
++│   ├── lib/             # Utility functions
+ │   ├── styles/          # Global CSS styles
+```
+
+### 3. Add Type Checking Command
+Add a section for development commands:
+
+```diff
++### Development Commands
++
++```bash
++# Type check
++npx tsc --noEmit
++```
+```
+
+## Priority
+Low - These are documentation accuracy improvements.
+
+## Status
+Proposed - Awaiting review.
