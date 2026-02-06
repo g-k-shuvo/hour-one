@@ -8,7 +8,6 @@ import {
   PinOff,
   Trash2,
   Edit3,
-  Calendar,
   Check,
   Settings,
 } from 'lucide-react';

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { Search, MoreHorizontal } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { AdaptiveDropdown, DropdownItem, DropdownLabel, DropdownContainer } from '@/components/ui/Dropdown';

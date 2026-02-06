@@ -1,11 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Check, Edit3, X, MoreHorizontal } from 'lucide-react';
 import { useFocusStore } from '@/stores/focusStore';
 import { useFocusSessionStore } from '@/stores/focusSessionStore';
 import { useTodosStore } from '@/stores/todosStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { AdaptiveDropdown, DropdownItem, DropdownContainer } from '@/components/ui/Dropdown';
-import { useClickOutside } from '@/hooks/useClickOutside';
 import { SYSTEM_FOLDER_IDS } from '@/types';
 
 export function Focus() {

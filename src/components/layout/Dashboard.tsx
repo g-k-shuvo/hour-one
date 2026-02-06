@@ -18,7 +18,6 @@ import { CountdownButton, CountdownPanel, CountdownHeaderActions } from '@/compo
 import { HabitTrackerButton, HabitTrackerPanel, HabitTrackerHeaderActions } from '@/components/widgets/HabitTracker';
 import { FocusModeOverlay } from '@/components/widgets/FocusModeOverlay';
 import { AutofocusOverlay, AutofocusButton, useAutofocusKeyboard } from '@/components/widgets/AutofocusMode';
-import { useAutofocusStore } from '@/stores/autofocusStore';
 import { BalancePanel, BalanceButton, BalanceHeaderActions, BreakReminderNotification } from '@/components/widgets/BalanceMode';
 import { MetricsPanel, MetricsButton, MetricsHeaderActions } from '@/components/widgets/MetricsDashboard';
 import { useKeyboardShortcuts, KeyboardShortcutsHelp } from '@/components/ui/KeyboardShortcuts';
@@ -33,7 +32,7 @@ import { useWeatherStore } from '@/stores/weatherStore';
 import { useFocusSessionStore } from '@/stores/focusSessionStore';
 import { useFocusStore } from '@/stores/focusStore';
 import { useQuickLinksStore, usePinnedItems } from '@/stores/quickLinksStore';
-import { useLayoutStore, type CenterWidgetId } from '@/stores/layoutStore';
+import { useLayoutStore } from '@/stores/layoutStore';
 
 type CenterMode = 'focus' | 'search';
 
@@ -46,7 +45,6 @@ export function Dashboard() {
   const { links } = useQuickLinksStore();
   const pinnedItems = usePinnedItems();
   const { centerWidgetOrder, swapCenterWidgets } = useLayoutStore();
-  const { startAutofocus } = useAutofocusStore();
 
   const [showTodos, setShowTodos] = useState(false);
   const [showLinks, setShowLinks] = useState(false);
@@ -78,7 +76,10 @@ export function Dashboard() {
     toggleWorldClocks: () => setShowWorldClocks((v) => !v),
     toggleCountdowns: () => setShowCountdowns((v) => !v),
     startFocusMode: () => enterFocusMode(focus),
-    startAutofocus: () => startAutofocus(),
+    startAutofocus: () => {
+      // Dispatch event that AutofocusButton listens to
+      window.dispatchEvent(new CustomEvent('openAutofocusModal'));
+    },
     newTask: () => setShowTodos(true), // Open todo list to add new task
   });
 

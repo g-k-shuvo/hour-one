@@ -18,7 +18,8 @@ import { SYSTEM_FOLDER_IDS } from '@/types';
 import type { Task } from '@/types';
 
 // Priority colors
-const PRIORITY_COLORS = {
+const PRIORITY_COLORS: Record<string, string> = {
+  urgent: 'text-red-500',
   high: 'text-red-400',
   medium: 'text-yellow-400',
   low: 'text-blue-400',

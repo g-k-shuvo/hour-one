@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Plus,
@@ -16,7 +16,6 @@ import {
   useHabitStore,
   calculateStreak,
   calculateLongestStreak,
-  getCompletionRate,
   getWeekCompletions,
   isCompletedToday,
   shouldTrackDay,
@@ -341,10 +340,6 @@ function HabitStats({ habits }: { habits: Habit[] }) {
 
   const totalStreak = activeHabits.reduce((sum, h) => sum + calculateStreak(h), 0);
   const bestStreak = Math.max(0, ...activeHabits.map(h => calculateLongestStreak(h)));
-  const avgCompletion = activeHabits.length > 0
-    ? Math.round(activeHabits.reduce((sum, h) => sum + getCompletionRate(h, 7), 0) / activeHabits.length)
-    : 0;
-
   const completedToday = activeHabits.filter(h => {
     const today = new Date(getTodayDate());
     return shouldTrackDay(h, today) && isCompletedToday(h);
